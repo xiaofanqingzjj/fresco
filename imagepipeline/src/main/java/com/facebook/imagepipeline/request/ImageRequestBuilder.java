@@ -1,29 +1,27 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.request;
 
-import javax.annotation.Nullable;
+import static com.facebook.imagepipeline.request.ImageRequest.CacheChoice;
+import static com.facebook.imagepipeline.request.ImageRequest.RequestLevel;
 
 import android.net.Uri;
-
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.util.UriUtil;
+import com.facebook.imagepipeline.common.BytesRange;
 import com.facebook.imagepipeline.common.ImageDecodeOptions;
 import com.facebook.imagepipeline.common.Priority;
 import com.facebook.imagepipeline.common.ResizeOptions;
 import com.facebook.imagepipeline.common.RotationOptions;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
+import com.facebook.imagepipeline.core.ImagePipelineExperiments;
 import com.facebook.imagepipeline.listener.RequestListener;
-
-import static com.facebook.imagepipeline.request.ImageRequest.CacheChoice;
-import static com.facebook.imagepipeline.request.ImageRequest.RequestLevel;
+import javax.annotation.Nullable;
 
 /**
  * Builder class for {@link ImageRequest}s.
@@ -44,6 +42,7 @@ public class ImageRequestBuilder {
   private boolean mDiskCacheEnabled = true;
   private @Nullable RequestListener mRequestListener;
   private @Nullable MediaVariations mMediaVariations = null;
+  private @Nullable BytesRange mBytesRange = null;
 
   /**
    * Creates a new request builder instance. The setting will be done according to the source type.
@@ -76,12 +75,14 @@ public class ImageRequestBuilder {
 
   /**
    * Creates a new request builder instance with the same parameters as the imageRequest passed in.
+   *
    * @param imageRequest the ImageRequest from where to copy the parameters to the builder.
    * @return a new request builder instance
    */
   public static ImageRequestBuilder fromRequest(ImageRequest imageRequest) {
     return ImageRequestBuilder.newBuilderWithSource(imageRequest.getSourceUri())
         .setImageDecodeOptions(imageRequest.getImageDecodeOptions())
+        .setBytesRange(imageRequest.getBytesRange())
         .setCacheChoice(imageRequest.getCacheChoice())
         .setLocalThumbnailPreviewsEnabled(imageRequest.getLocalThumbnailPreviewsEnabled())
         .setLowestPermittedRequestLevel(imageRequest.getLowestPermittedRequestLevel())
@@ -210,6 +211,29 @@ public class ImageRequestBuilder {
   /** Gets the rotation options if set, null otherwise. */
   public @Nullable RotationOptions getRotationOptions() {
     return mRotationOptions;
+  }
+
+  /**
+   * Set the range of bytes to request from the network (in the case of an HTTP request). This is
+   * only used if {@link ImagePipelineExperiments#isPartialImageCachingEnabled()} is true and your
+   * {@link com.facebook.imagepipeline.producers.NetworkFetcher} makes use of it.
+   *
+   * <p> Even where this is supported, there is no contract that this must be followed. The response
+   * may contain the full image data, more than is requested or less, depending on what's already in
+   * cache and external factors.
+   *
+   * @param bytesRange the range of bytes
+   * @return the modified builder instance
+   */
+  public ImageRequestBuilder setBytesRange(@Nullable BytesRange bytesRange) {
+    mBytesRange = bytesRange;
+    return this;
+  }
+
+  /** Gets the range of bytes if set, null otherwise. */
+  @Nullable
+  public BytesRange getBytesRange() {
+    return mBytesRange;
   }
 
   public ImageRequestBuilder setImageDecodeOptions(ImageDecodeOptions imageDecodeOptions) {

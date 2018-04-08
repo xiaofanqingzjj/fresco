@@ -27,7 +27,6 @@
       <com.facebook.drawee.view.SimpleDraweeView
           android:id="@+id/drawee_round"
           style="@style/DraweeRoundedCorners.Drawee"
-          app:actualImageUri="http://frescolib.org/static/sample-images/animal_a_l.jpg"
           app:roundAsCircle="true"
           />
 
@@ -40,7 +39,6 @@
       <com.facebook.drawee.view.SimpleDraweeView
           android:id="@+id/drawee_radius"
           style="@style/DraweeRoundedCorners.Drawee"
-          app:actualImageUri="http://frescolib.org/static/sample-images/animal_b_l.jpg"
           app:roundedCornerRadius="16dp"
           />
 
@@ -53,10 +51,23 @@
       <com.facebook.drawee.view.SimpleDraweeView
           android:id="@+id/drawee_some"
           style="@style/DraweeRoundedCorners.Drawee"
-          app:actualImageUri="http://frescolib.org/static/sample-images/animal_c_l.jpg"
           app:roundedCornerRadius="16dp"
           app:roundBottomLeft="false"
           app:roundTopRight="false"
+          />
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+          android:text="@string/drawee_rounded_corners_some_rtl"
+          />
+      <com.facebook.drawee.view.SimpleDraweeView
+          android:id="@+id/drawee_some_rtl"
+          style="@style/DraweeRoundedCorners.Drawee"
+          app:roundedCornerRadius="16dp"
+          app:roundTopStart="false"
+          app:roundBottomStart="false"
           />
 
       <TextView
@@ -68,7 +79,6 @@
       <com.facebook.drawee.view.SimpleDraweeView
           android:id="@+id/drawee_fancy"
           style="@style/DraweeRoundedCorners.Drawee"
-          app:actualImageUri="http://frescolib.org/static/sample-images/animal_e_l.jpg"
           />
     </LinearLayout>
   </ScrollView>
@@ -77,17 +87,31 @@
       android:layout_height="wrap_content"
       android:layout_marginTop="@dimen/margin_medium"
       android:orientation="horizontal"
+      android:gravity="center_vertical"
       >
     <Spinner
         android:id="@+id/scaleType"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         />
-    <CheckBox
-        android:id="@+id/borders"
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/drawee_rounded_corners_borders"
-        />
+        android:orientation="vertical"
+        >
+      <CheckBox
+          android:id="@+id/borders"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/drawee_rounded_corners_borders"
+          />
+      <CheckBox
+          android:id="@+id/scaleInside"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/drawee_rounded_corners_scale_inside_borders"
+          />
+    </LinearLayout>
   </LinearLayout>
 </LinearLayout>

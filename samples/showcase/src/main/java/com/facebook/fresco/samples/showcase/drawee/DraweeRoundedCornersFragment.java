@@ -11,9 +11,6 @@
  */
 package com.facebook.fresco.samples.showcase.drawee;
 
-import java.util.Arrays;
-import java.util.List;
-
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Color;
@@ -29,7 +26,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Spinner;
 import android.widget.Toast;
-
 import com.facebook.common.internal.Preconditions;
 import com.facebook.drawee.drawable.ScalingUtils.ScaleType;
 import com.facebook.drawee.generic.GenericDraweeHierarchy;
@@ -38,6 +34,10 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.fresco.samples.showcase.BaseShowcaseFragment;
 import com.facebook.fresco.samples.showcase.R;
 import com.facebook.fresco.samples.showcase.common.SimpleScaleTypeAdapter;
+import com.facebook.fresco.samples.showcase.misc.ImageUriProvider;
+import com.facebook.fresco.samples.showcase.misc.ImageUriProvider.ImageSize;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * A {@link Fragment} that illustrates using rounded corners with Fresco.
@@ -56,7 +56,11 @@ public class DraweeRoundedCornersFragment extends BaseShowcaseFragment {
   private SimpleDraweeView mDraweeRound;
   private SimpleDraweeView mDraweeRadius;
   private SimpleDraweeView mDraweeSome;
+  private SimpleDraweeView mDraweeSomeRtl;
   private SimpleDraweeView mDraweeFancy;
+
+  private CheckBox mShowBordersCheck;
+  private CheckBox mScaleInsideBordersCheck;
 
   public DraweeRoundedCornersFragment() {
     // Required empty public constructor
@@ -82,6 +86,13 @@ public class DraweeRoundedCornersFragment extends BaseShowcaseFragment {
     findDrawees(view);
     initColors();
 
+    final ImageUriProvider imageUriProvider = ImageUriProvider.getInstance(getContext());
+    mDraweeRound.setImageURI(imageUriProvider.createSampleUri(ImageSize.L));
+    mDraweeRadius.setImageURI(imageUriProvider.createSampleUri(ImageSize.L));
+    mDraweeSome.setImageURI(imageUriProvider.createSampleUri(ImageSize.L));
+    mDraweeSomeRtl.setImageURI(imageUriProvider.createSampleUri(ImageSize.L));
+    mDraweeFancy.setImageURI(imageUriProvider.createSampleUri(ImageSize.L));
+
     final Spinner scaleType = (Spinner) view.findViewById(R.id.scaleType);
     final SimpleScaleTypeAdapter scaleTypeAdapter = SimpleScaleTypeAdapter.createForAllScaleTypes();
     scaleType.setAdapter(scaleTypeAdapter);
@@ -95,6 +106,7 @@ public class DraweeRoundedCornersFragment extends BaseShowcaseFragment {
         changeDraweeViewScaleType(mDraweeRound, scaleType, spinnerEntry.focusPoint);
         changeDraweeViewScaleType(mDraweeRadius, scaleType, spinnerEntry.focusPoint);
         changeDraweeViewScaleType(mDraweeSome, scaleType, spinnerEntry.focusPoint);
+        changeDraweeViewScaleType(mDraweeSomeRtl, scaleType, spinnerEntry.focusPoint);
         changeDraweeViewScaleType(mDraweeFancy, scaleType, spinnerEntry.focusPoint);
 
         if (BITMAP_ONLY_SCALETYPES.contains(scaleType) &&
@@ -118,16 +130,23 @@ public class DraweeRoundedCornersFragment extends BaseShowcaseFragment {
       }
     });
 
-    final CheckBox borders = (CheckBox) view.findViewById(R.id.borders);
-    borders.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-      @Override
-      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        setShowBorder(mDraweeRound, isChecked);
-        setShowBorder(mDraweeRadius, isChecked);
-        setShowBorder(mDraweeSome, isChecked);
-        setShowBorder(mDraweeFancy, isChecked);
-      }
-    });
+    mShowBordersCheck = view.findViewById(R.id.borders);
+    mShowBordersCheck.setOnCheckedChangeListener(
+        new CompoundButton.OnCheckedChangeListener() {
+          @Override
+          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            updateRounding();
+          }
+        });
+
+    mScaleInsideBordersCheck = view.findViewById(R.id.scaleInside);
+    mScaleInsideBordersCheck.setOnCheckedChangeListener(
+        new CompoundButton.OnCheckedChangeListener() {
+          @Override
+          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            updateRounding();
+          }
+        });
 
     final Resources res = getResources();
     final RoundingParams fancyRoundingParams =
@@ -144,6 +163,7 @@ public class DraweeRoundedCornersFragment extends BaseShowcaseFragment {
     mDraweeRound = (SimpleDraweeView) view.findViewById(R.id.drawee_round);
     mDraweeRadius = (SimpleDraweeView) view.findViewById(R.id.drawee_radius);
     mDraweeSome = (SimpleDraweeView) view.findViewById(R.id.drawee_some);
+    mDraweeSomeRtl = (SimpleDraweeView) view.findViewById(R.id.drawee_some_rtl);
     mDraweeFancy = (SimpleDraweeView) view.findViewById(R.id.drawee_fancy);
   }
 
@@ -178,13 +198,24 @@ public class DraweeRoundedCornersFragment extends BaseShowcaseFragment {
     hierarchy.setRoundingParams(roundingParams);
   }
 
-  private void setShowBorder(SimpleDraweeView draweeView, boolean show) {
+  private void updateRounding() {
+    boolean showBorder = mShowBordersCheck.isChecked();
+    boolean scaleInsideBorder = showBorder && mScaleInsideBordersCheck.isChecked();
+    setShowBorder(mDraweeRound, showBorder, scaleInsideBorder);
+    setShowBorder(mDraweeRadius, showBorder, scaleInsideBorder);
+    setShowBorder(mDraweeSome, showBorder, scaleInsideBorder);
+    setShowBorder(mDraweeSomeRtl, showBorder, scaleInsideBorder);
+    setShowBorder(mDraweeFancy, showBorder, scaleInsideBorder);
+  }
+
+  private void setShowBorder(SimpleDraweeView draweeView, boolean show, boolean scaleInside) {
     final RoundingParams roundingParams =
         Preconditions.checkNotNull(draweeView.getHierarchy().getRoundingParams());
     if (show) {
       roundingParams.setBorder(
           mColorPrimary,
           getResources().getDimensionPixelSize(R.dimen.drawee_rounded_corners_border_width));
+      roundingParams.setScaleDownInsideBorders(scaleInside);
     } else {
       roundingParams.setBorder(Color.TRANSPARENT, 0);
     }

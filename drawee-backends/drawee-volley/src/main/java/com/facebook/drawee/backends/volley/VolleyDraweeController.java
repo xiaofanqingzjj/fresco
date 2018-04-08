@@ -1,10 +1,8 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.backends.volley;
@@ -13,16 +11,14 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-
 import com.facebook.common.internal.Objects;
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.internal.Supplier;
 import com.facebook.datasource.DataSource;
 import com.facebook.drawee.components.DeferredReleaser;
 import com.facebook.drawee.controller.AbstractDraweeController;
-
+import com.facebook.drawee.interfaces.DraweeController;
 import java.util.concurrent.Executor;
-
 import javax.annotation.Nullable;
 
 /**
@@ -112,5 +108,10 @@ public class VolleyDraweeController
         .add("super", super.toString())
         .add("dataSourceSupplier", mDataSourceSupplier)
         .toString();
+  }
+
+  @Override
+  public boolean isSameImageRequest(DraweeController other) {
+    return false;
   }
 }

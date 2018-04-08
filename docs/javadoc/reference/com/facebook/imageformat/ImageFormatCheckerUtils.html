@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="selected api apilevel-">
   <a href="../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -522,6 +522,24 @@ Summary:
 
 	 
     <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            static
+            
+            int
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../com/facebook/imageformat/ImageFormatCheckerUtils.html#indexOfPattern(byte[], int, byte[], int)">indexOfPattern</a></span>(byte[] byteArray, int byteArrayLen, byte[] pattern, int patternLen)
+        
+        <div class="jd-descrdiv">Checks if byteArray interpreted as sequence of bytes contains the pattern.</div>
+  
+  </td></tr>
+
+
+	 
+    <tr class="alt-color api apilevel-" >
         <td class="jd-typecol">
             
             
@@ -836,6 +854,55 @@ From class
   <div class="jd-tagdata">
       <h5 class="jd-tagtitle">Returns</h5>
       <ul class="nolist"><li>byte array representing ascii encoded value
+</li></ul>
+  </div>
+
+    </div>
+</div>
+
+
+<a id="indexOfPattern(byte[], int, byte[], int)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+        static 
+         
+         
+         
+        int
+      </span>
+      <span class="sympad">indexOfPattern</span>
+      <span class="normal">(byte[] byteArray, int byteArrayLen, byte[] pattern, int patternLen)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>Checks if byteArray interpreted as sequence of bytes contains the pattern.</p></div>
+  <div class="jd-tagdata">
+      <h5 class="jd-tagtitle">Parameters</h5>
+      <table class="jd-tagtable">
+        <tr>
+          <th>byteArray</th>
+          <td>the byte array to be checked</td>
+        </tr>
+        <tr>
+          <th>pattern</th>
+          <td>the pattern to check</td>
+        </tr>
+      </table>
+  </div>
+  <div class="jd-tagdata">
+      <h5 class="jd-tagtitle">Returns</h5>
+      <ul class="nolist"><li>index of beginning of pattern, if found; otherwise -1
 </li></ul>
   </div>
 

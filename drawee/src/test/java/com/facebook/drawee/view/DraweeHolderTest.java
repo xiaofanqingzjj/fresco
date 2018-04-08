@@ -1,27 +1,11 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.view;
-
-import android.graphics.drawable.Drawable;
-import android.view.MotionEvent;
-
-import com.facebook.drawee.drawable.DrawableTestUtils;
-import com.facebook.drawee.interfaces.DraweeHierarchy;
-import com.facebook.drawee.interfaces.DraweeController;
-import com.facebook.drawee.testing.DraweeMocks;
-import org.robolectric.RobolectricTestRunner;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InOrder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,6 +18,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import android.graphics.drawable.Drawable;
+import android.view.MotionEvent;
+import com.facebook.drawee.drawable.DrawableTestUtils;
+import com.facebook.drawee.interfaces.DraweeController;
+import com.facebook.drawee.interfaces.DraweeHierarchy;
+import com.facebook.drawee.testing.DraweeMocks;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InOrder;
+import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
 public class DraweeHolderTest {

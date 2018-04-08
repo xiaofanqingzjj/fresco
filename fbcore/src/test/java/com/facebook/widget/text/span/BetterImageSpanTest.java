@@ -1,29 +1,25 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.widget.text.span;
 
-import java.util.Arrays;
-import java.util.Collection;
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-
+import java.util.Arrays;
+import java.util.Collection;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.ParameterizedRobolectricTestRunner;
-
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests the dimensions assigned by {@link BetterImageSpan} ensuring the width/height of is
@@ -44,17 +40,94 @@ public class BetterImageSpanTest {
   private int mFontDescent;
   private int mExpectedAscent;
   private int mExpectedDescent;
+  private int mFontTop;
+  private int mFontBottom;
+  private int mExpectedTop;
+  private int mExpectedBottom;
 
   @ParameterizedRobolectricTestRunner.Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-        { "Center - small drawable", BetterImageSpan.ALIGN_CENTER, 10, -20, 10, -20, 10 },
-        { "Center - large drawable", BetterImageSpan.ALIGN_CENTER, 50, -20, 10, -30, 20 },
-        { "Baseline - small drawable", BetterImageSpan.ALIGN_BASELINE, 10, -20, 10, -20, 10 },
-        { "Baseline - large drawable", BetterImageSpan.ALIGN_BASELINE, 50, -20, 10, -50, 10 },
-        { "Bottom - small drawable", BetterImageSpan.ALIGN_BOTTOM, 10, -20, 10, -20, 10 },
-        { "Bottom - large drawable", BetterImageSpan.ALIGN_BOTTOM, 50, -20, 10, -40, 10 }
-    });
+    return Arrays.asList(
+        new Object[][] {
+          {
+            "Center - small drawable",
+            BetterImageSpan.ALIGN_CENTER,
+            10,
+            -20,
+            10,
+            -20,
+            10,
+            -25,
+            15,
+            -25,
+            15
+          },
+          {
+            "Center - large drawable",
+            BetterImageSpan.ALIGN_CENTER,
+            50,
+            -20,
+            10,
+            -30,
+            20,
+            -25,
+            15,
+            -30,
+            20
+          },
+          {
+            "Baseline - small drawable",
+            BetterImageSpan.ALIGN_BASELINE,
+            10,
+            -20,
+            10,
+            -20,
+            10,
+            -25,
+            15,
+            -25,
+            15
+          },
+          {
+            "Baseline - large drawable",
+            BetterImageSpan.ALIGN_BASELINE,
+            50,
+            -20,
+            10,
+            -50,
+            10,
+            -25,
+            15,
+            -50,
+            15
+          },
+          {
+            "Bottom - small drawable",
+            BetterImageSpan.ALIGN_BOTTOM,
+            10,
+            -20,
+            10,
+            -20,
+            10,
+            -25,
+            15,
+            -25,
+            15
+          },
+          {
+            "Bottom - large drawable",
+            BetterImageSpan.ALIGN_BOTTOM,
+            50,
+            -20,
+            10,
+            -40,
+            10,
+            -25,
+            15,
+            -40,
+            15
+          }
+        });
   }
 
   public BetterImageSpanTest(
@@ -62,7 +135,13 @@ public class BetterImageSpanTest {
       int alignment,
       int drawableHeight,
       int fontAscent,
-      int fontDescent, int expectedAscent, int expectedDescent) {
+      int fontDescent,
+      int expectedAscent,
+      int expectedDescent,
+      int fontTop,
+      int fontBottom,
+      int expectedTop,
+      int expectedBottom) {
     mDescription = description;
     mAlignment = alignment;
     mDrawableHeight = drawableHeight;
@@ -70,6 +149,10 @@ public class BetterImageSpanTest {
     mFontDescent = fontDescent;
     mExpectedAscent = expectedAscent;
     mExpectedDescent = expectedDescent;
+    mFontTop = fontTop;
+    mFontBottom = fontBottom;
+    mExpectedTop = expectedTop;
+    mExpectedBottom = expectedBottom;
   }
 
   @Before
@@ -78,6 +161,8 @@ public class BetterImageSpanTest {
     mBounds.set(0, 0, mDrawableWidth, mDrawableHeight);
     mFontMetrics.ascent = mFontAscent;
     mFontMetrics.descent = mFontDescent;
+    mFontMetrics.top = mFontTop;
+    mFontMetrics.bottom = mFontBottom;
     when(mDrawable.getBounds()).thenReturn(mBounds);
   }
 
@@ -91,6 +176,10 @@ public class BetterImageSpanTest {
     assertThat(mFontMetrics.ascent)
         .describedAs("Ascent for " + mDescription)
         .isEqualTo(mExpectedAscent);
+    assertThat(mFontMetrics.top).describedAs("Top for " + mDescription).isEqualTo(mExpectedTop);
+    assertThat(mFontMetrics.bottom)
+        .describedAs("Bottom for " + mDescription)
+        .isEqualTo(mExpectedBottom);
   }
 
   @Test

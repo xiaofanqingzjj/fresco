@@ -1,34 +1,33 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.backends.pipeline;
 
-import javax.annotation.Nullable;
-
-import java.util.Set;
-
 import android.content.Context;
 import android.net.Uri;
-
 import com.facebook.cache.common.CacheKey;
+import com.facebook.common.internal.ImmutableList;
+import com.facebook.common.internal.Preconditions;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.datasource.DataSource;
+import com.facebook.drawee.backends.pipeline.info.ImageOriginListener;
 import com.facebook.drawee.controller.AbstractDraweeControllerBuilder;
 import com.facebook.drawee.controller.ControllerListener;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.imagepipeline.cache.CacheKeyFactory;
 import com.facebook.imagepipeline.common.RotationOptions;
 import com.facebook.imagepipeline.core.ImagePipeline;
+import com.facebook.imagepipeline.drawable.DrawableFactory;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
+import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Concrete implementation of ImagePipeline Drawee controller builder.
@@ -42,6 +41,10 @@ public class PipelineDraweeControllerBuilder extends AbstractDraweeControllerBui
 
   private final ImagePipeline mImagePipeline;
   private final PipelineDraweeControllerFactory mPipelineDraweeControllerFactory;
+
+  @Nullable
+  private ImmutableList<DrawableFactory> mCustomDrawableFactories;
+  @Nullable private ImageOriginListener mImageOriginListener;
 
   public PipelineDraweeControllerBuilder(
       Context context,
@@ -72,6 +75,29 @@ public class PipelineDraweeControllerBuilder extends AbstractDraweeControllerBui
     return setUri(Uri.parse(uriString));
   }
 
+  public PipelineDraweeControllerBuilder setCustomDrawableFactories(
+      @Nullable ImmutableList<DrawableFactory> customDrawableFactories) {
+    mCustomDrawableFactories = customDrawableFactories;
+    return getThis();
+  }
+
+  public PipelineDraweeControllerBuilder setCustomDrawableFactories(
+      DrawableFactory... drawableFactories) {
+    Preconditions.checkNotNull(drawableFactories);
+    return setCustomDrawableFactories(ImmutableList.of(drawableFactories));
+  }
+
+  public PipelineDraweeControllerBuilder setCustomDrawableFactory(DrawableFactory drawableFactory) {
+    Preconditions.checkNotNull(drawableFactory);
+    return setCustomDrawableFactories(ImmutableList.of(drawableFactory));
+  }
+
+  public PipelineDraweeControllerBuilder setImageOriginListener(
+      @Nullable ImageOriginListener imageOriginListener) {
+    mImageOriginListener = imageOriginListener;
+    return getThis();
+  }
+
   @Override
   protected PipelineDraweeController obtainController() {
     DraweeController oldController = getOldController();
@@ -82,13 +108,18 @@ public class PipelineDraweeControllerBuilder extends AbstractDraweeControllerBui
           obtainDataSourceSupplier(),
           generateUniqueControllerId(),
           getCacheKey(),
-          getCallerContext());
+          getCallerContext(),
+          mCustomDrawableFactories,
+          mImageOriginListener);
     } else {
-      controller = mPipelineDraweeControllerFactory.newController(
-          obtainDataSourceSupplier(),
-          generateUniqueControllerId(),
-          getCacheKey(),
-          getCallerContext());
+      controller =
+          mPipelineDraweeControllerFactory.newController(
+              obtainDataSourceSupplier(),
+              generateUniqueControllerId(),
+              getCacheKey(),
+              getCallerContext(),
+              mCustomDrawableFactories,
+              mImageOriginListener);
     }
     return controller;
   }
@@ -115,16 +146,11 @@ public class PipelineDraweeControllerBuilder extends AbstractDraweeControllerBui
   protected DataSource<CloseableReference<CloseableImage>> getDataSourceForRequest(
       ImageRequest imageRequest,
       Object callerContext,
-      CacheLevel cacheLevel) {
+      AbstractDraweeControllerBuilder.CacheLevel cacheLevel) {
     return mImagePipeline.fetchDecodedImage(
         imageRequest,
         callerContext,
         convertCacheLevelToRequestLevel(cacheLevel));
-  }
-
-  @Override
-  protected PipelineDraweeControllerBuilder getThis() {
-    return this;
   }
 
   public static ImageRequest.RequestLevel convertCacheLevelToRequestLevel(

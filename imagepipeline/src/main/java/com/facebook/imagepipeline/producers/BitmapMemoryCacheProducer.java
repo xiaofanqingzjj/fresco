@@ -1,10 +1,8 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.producers;
@@ -12,8 +10,8 @@ package com.facebook.imagepipeline.producers;
 import com.facebook.cache.common.CacheKey;
 import com.facebook.common.internal.ImmutableMap;
 import com.facebook.common.references.CloseableReference;
-import com.facebook.imagepipeline.cache.MemoryCache;
 import com.facebook.imagepipeline.cache.CacheKeyFactory;
+import com.facebook.imagepipeline.cache.MemoryCache;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.QualityInfo;
 import com.facebook.imagepipeline.request.ImageRequest;
@@ -65,7 +63,7 @@ public class BitmapMemoryCacheProducer implements Producer<CloseableReference<Cl
         listener.onUltimateProducerReached(requestId, getProducerName(), true);
         consumer.onProgressUpdate(1f);
       }
-      consumer.onNewResult(cachedReference, isFinal);
+      consumer.onNewResult(cachedReference, BaseConsumer.simpleStatusForIsLast(isFinal));
       cachedReference.close();
       if (isFinal) {
         return;
@@ -81,7 +79,7 @@ public class BitmapMemoryCacheProducer implements Producer<CloseableReference<Cl
               ? ImmutableMap.of(EXTRA_CACHED_VALUE_FOUND, "false")
               : null);
       listener.onUltimateProducerReached(requestId, getProducerName(), false);
-      consumer.onNewResult(null, true);
+      consumer.onNewResult(null, Consumer.IS_LAST);
       return;
     }
 
@@ -102,17 +100,20 @@ public class BitmapMemoryCacheProducer implements Producer<CloseableReference<Cl
         CloseableReference<CloseableImage>,
         CloseableReference<CloseableImage>>(consumer) {
       @Override
-      public void onNewResultImpl(CloseableReference<CloseableImage> newResult, boolean isLast) {
+      public void onNewResultImpl(
+          CloseableReference<CloseableImage> newResult,
+          @Status int status) {
+        final boolean isLast = isLast(status);
         // ignore invalid intermediate results and forward the null result if last
         if (newResult == null) {
           if (isLast) {
-            getConsumer().onNewResult(null, true);
+            getConsumer().onNewResult(null, status);
           }
           return;
         }
-        // stateful results cannot be cached and are just forwarded
-        if (newResult.get().isStateful()) {
-          getConsumer().onNewResult(newResult, isLast);
+        // stateful and partial results cannot be cached and are just forwarded
+        if (newResult.get().isStateful() || statusHasFlag(status, IS_PARTIAL_RESULT)) {
+          getConsumer().onNewResult(newResult, status);
           return;
         }
         // if the intermediate result is not of a better quality than the cached result,
@@ -124,7 +125,7 @@ public class BitmapMemoryCacheProducer implements Producer<CloseableReference<Cl
               QualityInfo newInfo = newResult.get().getQualityInfo();
               QualityInfo cachedInfo = currentCachedResult.get().getQualityInfo();
               if (cachedInfo.isOfFullQuality() || cachedInfo.getQuality() >= newInfo.getQuality()) {
-                getConsumer().onNewResult(currentCachedResult, false);
+                getConsumer().onNewResult(currentCachedResult, status);
                 return;
               }
             } finally {
@@ -140,7 +141,7 @@ public class BitmapMemoryCacheProducer implements Producer<CloseableReference<Cl
             getConsumer().onProgressUpdate(1f);
           }
           getConsumer().onNewResult(
-              (newCachedResult != null) ? newCachedResult : newResult, isLast);
+              (newCachedResult != null) ? newCachedResult : newResult, status);
         } finally {
           CloseableReference.closeSafely(newCachedResult);
         }

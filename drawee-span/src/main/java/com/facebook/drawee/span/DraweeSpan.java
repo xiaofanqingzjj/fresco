@@ -1,18 +1,13 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.span;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.view.View;
-
 import com.facebook.drawee.view.DraweeHolder;
 import com.facebook.widget.text.span.BetterImageSpan;
 
@@ -37,22 +32,6 @@ public class DraweeSpan extends BetterImageSpan {
       @BetterImageSpan.BetterImageSpanAlignment int verticalAlignment) {
     super(draweeHolder.getTopLevelDrawable(), verticalAlignment);
     mDraweeHolder = draweeHolder;
-  }
-
-  @Override
-  public void draw(
-      Canvas canvas,
-      CharSequence text,
-      int start,
-      int end,
-      float x,
-      int top,
-      int y,
-      int bottom,
-      Paint paint) {
-    if (mDraweeHolder.isAttached()) {
-      super.draw(canvas, text, start, end, x, top, y, bottom, paint);
-    }
   }
 
   /**

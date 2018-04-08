@@ -1,23 +1,20 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.common.util;
-
-import javax.annotation.Nullable;
-
-import java.io.File;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import java.io.File;
+import java.net.URL;
+import javax.annotation.Nullable;
 
 public class UriUtil {
 
@@ -37,11 +34,9 @@ public class UriUtil {
    */
   public static final String LOCAL_CONTENT_SCHEME = "content";
 
-  /**
-   * URI prefix (including scheme) for contact photos
-   */
-  private static final String LOCAL_CONTACT_IMAGE_PREFIX =
-      Uri.withAppendedPath(ContactsContract.AUTHORITY_URI, "display_photo").getPath();
+  /** URI prefix (including scheme) for contact photos */
+  private static final Uri LOCAL_CONTACT_IMAGE_URI =
+      Uri.withAppendedPath(ContactsContract.AUTHORITY_URI, "display_photo");
 
   /**
    * Asset scheme for URIs
@@ -63,6 +58,26 @@ public class UriUtil {
    * Data scheme for URIs
    */
   public static final String DATA_SCHEME = "data";
+
+  /**
+   * Convert android.net.Uri to java.net.URL as necessary for some networking APIs.
+   *
+   * @param uri uri to convert
+   * @return url pointing to the same resource as uri
+   */
+  @Nullable
+  public static URL uriToUrl(@Nullable Uri uri) {
+    if (uri == null) {
+      return null;
+    }
+
+    try {
+      return new URL(uri.toString());
+    } catch (java.net.MalformedURLException e) {
+      // This should never happen since we got a valid uri
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Check if uri represents network resource
@@ -106,7 +121,7 @@ public class UriUtil {
   public static boolean isLocalContactUri(Uri uri) {
     return isLocalContentUri(uri)
         && ContactsContract.AUTHORITY.equals(uri.getAuthority())
-        && !uri.getPath().startsWith(LOCAL_CONTACT_IMAGE_PREFIX);
+        && !uri.getPath().startsWith(LOCAL_CONTACT_IMAGE_URI.getPath());
   }
 
   /**

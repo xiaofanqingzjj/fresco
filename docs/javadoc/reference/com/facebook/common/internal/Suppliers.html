@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -375,9 +375,12 @@ Summary:
 
 
 
+  <a href="#lfields">Fields</a>
+  
 
 
-  <a href="#pubctors">Ctors</a>
+
+  &#124; <a href="#pubctors">Ctors</a>
   
 
 
@@ -460,8 +463,7 @@ Summary:
 
 
 <h2>Class Overview</h2>
-<p>Wrapper for creating a Supplier.
-</p>
+<p>Wrapper for creating a Supplier and default Suppliers for convenience. </p>
 
 
 
@@ -504,6 +506,37 @@ Summary:
 
 
 
+
+
+<!-- =========== FIELD SUMMARY =========== -->
+<table id="lfields" class="jd-sumtable"><tr><th colspan="12">Fields</th></tr>
+
+
+    
+      <tr class="alt-color api apilevel-" >
+          <td class="jd-typecol">
+          public
+          static
+          final
+          <a href="../../../../com/facebook/common/internal/Supplier.html">Supplier</a>&lt;Boolean&gt;</td>
+          <td class="jd-linkcol"><a href="../../../../com/facebook/common/internal/Suppliers.html#BOOLEAN_FALSE">BOOLEAN_FALSE</a></td>
+          <td class="jd-descrcol" width="100%">Boolean supplier that always returns false.</td>
+      </tr>
+      
+    
+      <tr class=" api apilevel-" >
+          <td class="jd-typecol">
+          public
+          static
+          final
+          <a href="../../../../com/facebook/common/internal/Supplier.html">Supplier</a>&lt;Boolean&gt;</td>
+          <td class="jd-linkcol"><a href="../../../../com/facebook/common/internal/Suppliers.html#BOOLEAN_TRUE">BOOLEAN_TRUE</a></td>
+          <td class="jd-descrcol" width="100%">Boolean supplier that always returns true.</td>
+      </tr>
+      
+    
+
+</table>
 
 
 
@@ -803,6 +836,73 @@ From class
 
 
 <!-- Fields -->
+
+
+<!-- ========= FIELD DETAIL ======== -->
+<h2>Fields</h2>
+
+
+
+
+<a id="BOOLEAN_FALSE"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+        static 
+        final 
+        <a href="../../../../com/facebook/common/internal/Supplier.html">Supplier</a>&lt;Boolean&gt;
+      </span>
+        BOOLEAN_FALSE
+    </h4>
+      <div class="api-level">
+        
+
+
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>Boolean supplier that always returns false. </p></div>
+
+    
+    </div>
+</div>
+
+
+
+<a id="BOOLEAN_TRUE"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+        static 
+        final 
+        <a href="../../../../com/facebook/common/internal/Supplier.html">Supplier</a>&lt;Boolean&gt;
+      </span>
+        BOOLEAN_TRUE
+    </h4>
+      <div class="api-level">
+        
+
+
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>Boolean supplier that always returns true. </p></div>
+
+    
+    </div>
+</div>
+
+
 
 
 <!-- Public ctors -->

@@ -1,25 +1,15 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.core;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import java.util.Set;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicLong;
-
 import android.net.Uri;
-
 import bolts.Continuation;
 import bolts.Task;
-
 import com.android.internal.util.Predicate;
 import com.facebook.cache.common.CacheKey;
 import com.facebook.common.internal.Objects;
@@ -45,6 +35,10 @@ import com.facebook.imagepipeline.producers.SettableProducerContext;
 import com.facebook.imagepipeline.producers.ThreadHandoffProducerQueue;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The entry point for the image pipeline.
@@ -98,24 +92,6 @@ public class ImagePipeline {
    */
   private String generateUniqueFutureId() {
     return String.valueOf(mIdCounter.getAndIncrement());
-  }
-
-  /**
-   * @deprecated Use {@link #getDataSourceSupplier(ImageRequest, Object, ImageRequest.RequestLevel)}
-   * instead.
-   */
-  @Deprecated
-  public Supplier<DataSource<CloseableReference<CloseableImage>>> getDataSourceSupplier(
-      final ImageRequest imageRequest,
-      final Object callerContext,
-      final boolean bitmapCacheOnly) {
-    ImageRequest.RequestLevel requestLevel = bitmapCacheOnly ?
-        ImageRequest.RequestLevel.BITMAP_MEMORY_CACHE :
-        ImageRequest.RequestLevel.FULL_FETCH;
-    return getDataSourceSupplier(
-        imageRequest,
-        callerContext,
-        requestLevel);
   }
 
   /**

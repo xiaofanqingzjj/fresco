@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -527,8 +527,8 @@ Summary:
     <tr class=" api apilevel-" >
         <td class="jd-descrcol"><a href="../../../../com/facebook/drawee/generic/RoundingParams.RoundingMethod.html">RoundingParams.RoundingMethod</a>&nbsp;</td>
         <td class="jd-linkcol">OVERLAY_COLOR&nbsp;</td>
-        <td class="jd-descrcol" width="100%">Draws rounded corners on top of the underlying drawable by overlaying a solid color which
- is specified by <code>setOverlayColor</code>.&nbsp;</td>
+        <td class="jd-descrcol" width="100%">Draws rounded corners on top of the underlying drawable by overlaying a solid color which is
+ specified by <code>setOverlayColor</code>.&nbsp;</td>
     </tr>
     
     
@@ -1102,6 +1102,10 @@ From interface
  method. It doesn't support animations, and it does not support any scale types other than
  <code><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#CENTER_CROP">CENTER_CROP</a></code>, <code><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FOCUS_CROP">FOCUS_CROP</a></code> and
  <code><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FIT_XY">FIT_XY</a></code>.
+
+ If you use this rounding method with other scale types, such as
+ <code><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#CENTER">CENTER</a></code>, you won't get an Exception but the image might look
+ wrong (e.g. repeated edges), especially in cases the source image is smaller than the view.
 </p></div>
 
     
@@ -1132,9 +1136,12 @@ From interface
       </div>
     <div class="jd-details-descr">
       
-  <div class="jd-tagdata jd-tagdescr"><p>Draws rounded corners on top of the underlying drawable by overlaying a solid color which
- is specified by <code>setOverlayColor</code>. This option should only be used when the
- background beneath the underlying drawable is static and of the same solid color.
+  <div class="jd-tagdata jd-tagdescr"><p>Draws rounded corners on top of the underlying drawable by overlaying a solid color which is
+ specified by <code>setOverlayColor</code>. This option should only be used when the background
+ beneath the underlying drawable is static and of the same solid color.
+
+ <p>Adding borders with this method will cause image edges to be trimmed off. Not noticeable
+ if the color is opaque, but very noticeable with low opacity.
 </p></div>
 
     

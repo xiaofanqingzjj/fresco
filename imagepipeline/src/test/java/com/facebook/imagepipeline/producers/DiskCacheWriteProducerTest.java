@@ -1,17 +1,22 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.producers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 import com.facebook.cache.common.CacheKey;
 import com.facebook.cache.common.MultiCacheKey;
@@ -20,23 +25,22 @@ import com.facebook.common.memory.PooledByteBuffer;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.imagepipeline.cache.BufferedDiskCache;
 import com.facebook.imagepipeline.cache.CacheKeyFactory;
-import com.facebook.imagepipeline.cache.DiskCachePolicy;
 import com.facebook.imagepipeline.common.Priority;
 import com.facebook.imagepipeline.image.EncodedImage;
 import com.facebook.imagepipeline.request.ImageRequest;
-
-import org.junit.*;
-import org.junit.runner.*;
-import org.mockito.*;
-import org.mockito.invocation.*;
-import org.mockito.stubbing.*;
-import org.robolectric.*;
-import org.robolectric.annotation.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 /**
  * Checks basic properties of disk cache producer operation, that is:
@@ -49,16 +53,18 @@ import static org.mockito.Mockito.*;
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest= Config.NONE)
 public class DiskCacheWriteProducerTest {
+  private static final String PRODUCER_NAME = DiskCacheWriteProducer.PRODUCER_NAME;
 
   @Mock public CacheKeyFactory mCacheKeyFactory;
   @Mock public Producer mInputProducer;
   @Mock public Consumer mConsumer;
   @Mock public ImageRequest mImageRequest;
   @Mock public Object mCallerContext;
-  @Mock public DiskCachePolicy mDiskCachePolicy;
   @Mock public ProducerListener mProducerListener;
   @Mock public Exception mException;
-  @Mock public AtomicBoolean mIsCancelled;
+  private final BufferedDiskCache mDefaultBufferedDiskCache = mock(BufferedDiskCache.class);
+  private final BufferedDiskCache mSmallImageBufferedDiskCache =
+      mock(BufferedDiskCache.class);
   private SettableProducerContext mProducerContext;
   private SettableProducerContext mLowestLevelProducerContext;
   private final String mRequestId = "mRequestId";
@@ -70,17 +76,16 @@ public class DiskCacheWriteProducerTest {
   private EncodedImage mIntermediateEncodedImage;
   private EncodedImage mFinalEncodedImage;
   private DiskCacheWriteProducer mDiskCacheWriteProducer;
-  private DiskCacheWriteProducer mForceSmallCacheProducer;
 
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
     mDiskCacheWriteProducer = new DiskCacheWriteProducer(
-        mInputProducer,
-        mDiskCachePolicy);
-    mForceSmallCacheProducer = new DiskCacheWriteProducer(
-        mInputProducer,
-        mDiskCachePolicy);
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache,
+        mCacheKeyFactory,
+        mInputProducer
+    );
     List<CacheKey> keys = new ArrayList<>(1);
     keys.add(new SimpleCacheKey("http://dummy.uri"));
     mCacheKey = new MultiCacheKey(keys);
@@ -116,31 +121,55 @@ public class DiskCacheWriteProducerTest {
   }
 
   @Test
-  public void testInputProducerSuccess() {
+  public void testDefaultDiskCacheInputProducerSuccess() {
     setupInputProducerSuccess();
     mDiskCacheWriteProducer.produceResults(mConsumer, mProducerContext);
-    verify(mDiskCachePolicy, never())
-        .writeToCache(mIntermediateEncodedImage, mImageRequest, mCallerContext);
+    verify(mDefaultBufferedDiskCache, never()).put(mCacheKey, mIntermediateEncodedImage);
     ArgumentCaptor<EncodedImage> argumentCaptor = ArgumentCaptor.forClass(EncodedImage.class);
-    verify(mDiskCachePolicy)
-        .writeToCache(argumentCaptor.capture(), eq(mImageRequest), eq(mCallerContext));
+    verify(mDefaultBufferedDiskCache).put(eq(mCacheKey), argumentCaptor.capture());
     EncodedImage encodedImage = argumentCaptor.getValue();
     assertSame(
         encodedImage.getByteBufferRef().getUnderlyingReferenceTestOnly(),
         mFinalImageReference.getUnderlyingReferenceTestOnly());
-    verify(mConsumer).onNewResult(mIntermediateEncodedImage, false);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mIntermediateEncodedImage, Consumer.NO_FLAGS);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verifyZeroInteractions(mProducerListener);
+  }
+
+  @Test
+  public void testSmallImageDiskCacheInputProducerSuccess() {
+    when(mImageRequest.getCacheChoice()).thenReturn(ImageRequest.CacheChoice.SMALL);
+    setupInputProducerSuccess();
+    mDiskCacheWriteProducer.produceResults(mConsumer, mProducerContext);
+    verify(mSmallImageBufferedDiskCache, never()).put(mCacheKey, mIntermediateEncodedImage);
+    verify(mSmallImageBufferedDiskCache).put(mCacheKey, mFinalEncodedImage);
+    verify(mConsumer).onNewResult(mIntermediateEncodedImage, Consumer.NO_FLAGS);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
+    verifyZeroInteractions(mProducerListener);
+  }
+
+  @Test
+  public void testDoesNotWriteToCacheIfPartialResult() {
+    setupInputProducerSuccessWithStatusFlags(Consumer.IS_PARTIAL_RESULT);
+
+    mDiskCacheWriteProducer.produceResults(mConsumer, mProducerContext);
+
+    verify(mConsumer).onNewResult(mIntermediateEncodedImage, Consumer.IS_PARTIAL_RESULT);
+    verify(mConsumer)
+        .onNewResult(mFinalEncodedImage, Consumer.IS_LAST | Consumer.IS_PARTIAL_RESULT);
+
+    verifyZeroInteractions(mDefaultBufferedDiskCache, mSmallImageBufferedDiskCache);
   }
 
   @Test
   public void testInputProducerNotFound() {
     setupInputProducerNotFound();
     mDiskCacheWriteProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(null, true);
+    verify(mConsumer).onNewResult(null, Consumer.IS_LAST);
     verifyZeroInteractions(
         mProducerListener,
-        mDiskCachePolicy);
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache);
   }
 
   @Test
@@ -150,7 +179,8 @@ public class DiskCacheWriteProducerTest {
     verify(mConsumer).onFailure(mException);
     verifyZeroInteractions(
         mProducerListener,
-        mDiskCachePolicy);
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache);
   }
 
   @Test
@@ -158,35 +188,53 @@ public class DiskCacheWriteProducerTest {
     when(mImageRequest.isDiskCacheEnabled()).thenReturn(false);
     setupInputProducerSuccess();
     mDiskCacheWriteProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mIntermediateEncodedImage, false);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
-    verify(mDiskCachePolicy, never())
-        .writeToCache(any(EncodedImage.class), any(ImageRequest.class), anyObject());
+    verify(mConsumer).onNewResult(mIntermediateEncodedImage, Consumer.NO_FLAGS);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verifyNoMoreInteractions(
         mProducerListener,
         mCacheKeyFactory,
-        mDiskCachePolicy);
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache);
+  }
+
+  @Test
+  public void testDoesNotWriteResultToCacheIfResultStatusSaysNotTo() {
+    setupInputProducerSuccessWithStatusFlags(Consumer.DO_NOT_CACHE_ENCODED);
+    mDiskCacheWriteProducer.produceResults(mConsumer, mProducerContext);
+    verify(mConsumer).onNewResult(mIntermediateEncodedImage, Consumer.DO_NOT_CACHE_ENCODED);
+    verify(mConsumer)
+        .onNewResult(mFinalEncodedImage, Consumer.IS_LAST | Consumer.DO_NOT_CACHE_ENCODED);
+    verifyNoMoreInteractions(
+        mProducerListener,
+        mCacheKeyFactory,
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache);
   }
 
   @Test
   public void testLowestLevelReached() {
     when(mProducerListener.requiresExtraMap(mRequestId)).thenReturn(false);
     mDiskCacheWriteProducer.produceResults(mConsumer, mLowestLevelProducerContext);
-    verify(mConsumer).onNewResult(null, true);
+    verify(mConsumer).onNewResult(null, Consumer.IS_LAST);
     verifyZeroInteractions(
         mInputProducer,
-        mDiskCachePolicy,
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache,
         mProducerListener);
   }
 
   private void setupInputProducerSuccess() {
+    setupInputProducerSuccessWithStatusFlags(0);
+  }
+
+  private void setupInputProducerSuccessWithStatusFlags(final @Consumer.Status int statusFlags) {
     doAnswer(
         new Answer<Object>() {
           @Override
           public Object answer(InvocationOnMock invocation) throws Throwable {
             Consumer consumer = (Consumer) invocation.getArguments()[0];
-            consumer.onNewResult(mIntermediateEncodedImage, false);
-            consumer.onNewResult(mFinalEncodedImage, true);
+            consumer.onNewResult(mIntermediateEncodedImage, Consumer.NO_FLAGS | statusFlags);
+            consumer.onNewResult(mFinalEncodedImage, Consumer.IS_LAST | statusFlags);
             return null;
           }
         }).when(mInputProducer).produceResults(any(Consumer.class), eq(mProducerContext));
@@ -210,7 +258,7 @@ public class DiskCacheWriteProducerTest {
           @Override
           public Object answer(InvocationOnMock invocation) throws Throwable {
             Consumer consumer = (Consumer) invocation.getArguments()[0];
-            consumer.onNewResult(null, true);
+            consumer.onNewResult(null, Consumer.IS_LAST);
             return null;
           }
         }).when(mInputProducer).produceResults(any(Consumer.class), eq(mProducerContext));

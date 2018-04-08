@@ -1,26 +1,25 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.generic;
 
-import javax.annotation.Nullable;
+import static com.facebook.drawee.drawable.ScalingUtils.ScaleType;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-
+import android.view.View;
 import com.facebook.drawee.R;
 import com.facebook.drawee.drawable.AutoRotateDrawable;
-import static com.facebook.drawee.drawable.ScalingUtils.ScaleType;
 import com.facebook.infer.annotation.ReturnsOwnership;
+import javax.annotation.Nullable;
 
 /**
  * Inflater for the {@code GenericDraweeHierarchy}.
@@ -50,6 +49,10 @@ import com.facebook.infer.annotation.ReturnsOwnership;
  * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundTopRight
  * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundBottomRight
  * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundBottomLeft
+ * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundTopStart
+ * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundTopEnd
+ * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundBottomStart
+ * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundBottomEnd
  * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundWithOverlayColor
  * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundingBorderWidth
  * @attr ref com.facebook.R.styleable#GenericDraweeHierarchy_roundingBorderColor
@@ -100,6 +103,10 @@ public class GenericDraweeHierarchyInflater {
     boolean roundTopRight = true;
     boolean roundBottomLeft = true;
     boolean roundBottomRight = true;
+    boolean roundTopStart = true;
+    boolean roundTopEnd = true;
+    boolean roundBottomStart = true;
+    boolean roundBottomEnd = true;
 
     if (attrs != null) {
       TypedArray gdhAttrs = context.obtainStyledAttributes(
@@ -175,6 +182,18 @@ public class GenericDraweeHierarchyInflater {
           } else if (attr == R.styleable.GenericDraweeHierarchy_roundBottomRight) {
             roundBottomRight = gdhAttrs.getBoolean(attr, roundBottomRight);
 
+          } else if (attr == R.styleable.GenericDraweeHierarchy_roundTopStart) {
+            roundTopStart = gdhAttrs.getBoolean(attr, roundTopStart);
+
+          } else if (attr == R.styleable.GenericDraweeHierarchy_roundTopEnd) {
+            roundTopEnd = gdhAttrs.getBoolean(attr, roundTopEnd);
+
+          } else if (attr == R.styleable.GenericDraweeHierarchy_roundBottomStart) {
+            roundBottomStart = gdhAttrs.getBoolean(attr, roundBottomStart);
+
+          } else if (attr == R.styleable.GenericDraweeHierarchy_roundBottomEnd) {
+            roundBottomEnd = gdhAttrs.getBoolean(attr, roundBottomEnd);
+
           } else if (attr == R.styleable.GenericDraweeHierarchy_roundWithOverlayColor) {
             getRoundingParams(builder).setOverlayColor(gdhAttrs.getColor(attr, 0));
 
@@ -191,6 +210,20 @@ public class GenericDraweeHierarchyInflater {
         }
       } finally {
         gdhAttrs.recycle();
+
+        if (android.os.Build.VERSION.SDK_INT >= 17 && context.getResources().getConfiguration()
+            .getLayoutDirection() == View.LAYOUT_DIRECTION_RTL) {
+          roundTopLeft = roundTopLeft && roundTopEnd;
+          roundTopRight = roundTopRight && roundTopStart;
+          roundBottomRight = roundBottomRight && roundBottomStart;
+          roundBottomLeft = roundBottomLeft && roundBottomEnd;
+        } else {
+          roundTopLeft = roundTopLeft && roundTopStart;
+          roundTopRight = roundTopRight && roundTopEnd;
+          roundBottomRight = roundBottomRight && roundBottomEnd;
+          roundBottomLeft = roundBottomLeft && roundBottomStart;
+        }
+
       }
     }
 
@@ -256,6 +289,8 @@ public class GenericDraweeHierarchyInflater {
         return ScaleType.CENTER_CROP;
       case 7: // focusCrop
         return ScaleType.FOCUS_CROP;
+      case 8: // fitBottomStart
+        return ScaleType.FIT_BOTTOM_START;
       default:
         // this method is supposed to be called only when XML attribute is specified.
         throw new RuntimeException("XML attribute not specified!");

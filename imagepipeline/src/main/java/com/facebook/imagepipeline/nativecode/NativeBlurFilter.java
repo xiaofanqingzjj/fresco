@@ -1,16 +1,13 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.nativecode;
 
 import android.graphics.Bitmap;
-
 import com.facebook.common.internal.DoNotStrip;
 import com.facebook.common.internal.Preconditions;
 
@@ -38,9 +35,11 @@ public class NativeBlurFilter {
    * <p>
    * Asymptotic memory: O(radius + max(width, height))
    *
-   * @param bitmap The targeted bitmap that will be blurred in-place
-   * @param iterations The number of iterations to run. Must be greater than 0.
-   * @param blurRadius The given blur radius. Must be greater than 0.
+   * @param bitmap The targeted bitmap that will be blurred in-place. Each dimension must not be
+   * greater than 65536.
+   * @param iterations The number of iterations to run. Must be greater than 0 and not greater than
+   * 65536.
+   * @param blurRadius The given blur radius. Must be greater than 0 and not greater than 65536.
    */
   public static void iterativeBoxBlur(Bitmap bitmap, int iterations, int blurRadius) {
     Preconditions.checkNotNull(bitmap);

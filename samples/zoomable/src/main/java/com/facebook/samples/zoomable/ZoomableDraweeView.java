@@ -12,8 +12,6 @@
 
 package com.facebook.samples.zoomable;
 
-import javax.annotation.Nullable;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -24,7 +22,6 @@ import android.support.v4.view.ScrollingView;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.logging.FLog;
 import com.facebook.drawee.controller.AbstractDraweeController;
@@ -36,6 +33,7 @@ import com.facebook.drawee.generic.GenericDraweeHierarchyBuilder;
 import com.facebook.drawee.generic.GenericDraweeHierarchyInflater;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.DraweeView;
+import javax.annotation.Nullable;
 
 /**
  * DraweeView that has zoomable capabilities.
@@ -48,9 +46,6 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
   private static final Class<?> TAG = ZoomableDraweeView.class;
 
   private static final float HUGE_IMAGE_SCALE_FACTOR_THRESHOLD = 1.1f;
-  private static final boolean DEFAULT_ALLOW_TOUCH_INTERCEPTION_WHILE_ZOOMED = true;
-
-  private boolean mUseSimpleTouchHandling = false;
 
   private final RectF mImageBounds = new RectF();
   private final RectF mViewBounds = new RectF();
@@ -58,8 +53,7 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
   private DraweeController mHugeImageController;
   private ZoomableController mZoomableController;
   private GestureDetector mTapGestureDetector;
-  private boolean mAllowTouchInterceptionWhileZoomed =
-      DEFAULT_ALLOW_TOUCH_INTERCEPTION_WHILE_ZOOMED;
+  private boolean mAllowTouchInterceptionWhileZoomed = true;
 
   private final ControllerListener mControllerListener = new BaseControllerListener<Object>() {
     @Override
@@ -76,12 +70,19 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
     }
   };
 
-  private final ZoomableController.Listener mZoomableListener = new ZoomableController.Listener() {
-    @Override
-    public void onTransformChanged(Matrix transform) {
-      ZoomableDraweeView.this.onTransformChanged(transform);
-    }
-  };
+  private final ZoomableController.Listener mZoomableListener =
+      new ZoomableController.Listener() {
+        @Override
+        public void onTransformBegin(Matrix transform) {}
+
+        @Override
+        public void onTransformChanged(Matrix transform) {
+          ZoomableDraweeView.this.onTransformChanged(transform);
+        }
+
+        @Override
+        public void onTransformEnd(Matrix transform) {}
+      };
 
   private final GestureListenerWrapper mTapListenerWrapper = new GestureListenerWrapper();
 
@@ -271,7 +272,20 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
   protected void onDraw(Canvas canvas) {
     int saveCount = canvas.save();
     canvas.concat(mZoomableController.getTransform());
-    super.onDraw(canvas);
+    try {
+      super.onDraw(canvas);
+    } catch (Exception e) {
+      DraweeController controller = getController();
+      if (controller != null && controller instanceof AbstractDraweeController) {
+        Object callerContext = ((AbstractDraweeController) controller).getCallerContext();
+        if (callerContext != null) {
+          throw new RuntimeException(
+              String.format("Exception in onDraw, callerContext=%s", callerContext.toString()),
+              e);
+        }
+      }
+      throw e;
+    }
     canvas.restoreToCount(saveCount);
   }
 
@@ -288,23 +302,15 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
       return true;
     }
 
-    if (mUseSimpleTouchHandling) {
-      if (mZoomableController.onTouchEvent(event)) {
-        return true;
-      }
-    } else if (mZoomableController.onTouchEvent(event)) {
-      // Do not allow the parent to intercept touch events if:
-      // - we do not allow swiping while zoomed and the image is zoomed
-      // - we allow swiping while zoomed and the transform was corrected
-      if ((!mAllowTouchInterceptionWhileZoomed && !mZoomableController.isIdentity()) ||
-          (mAllowTouchInterceptionWhileZoomed && !mZoomableController.wasTransformCorrected())) {
-        getParent().requestDisallowInterceptTouchEvent(true);
-      }
+    if (mZoomableController.onTouchEvent(event)) {
       FLog.v(
           getLogTag(),
           "onTouchEvent: %d, view %x, handled by zoomable controller",
           a,
           this.hashCode());
+      if (!mAllowTouchInterceptionWhileZoomed && !mZoomableController.isIdentity()) {
+        getParent().requestDisallowInterceptTouchEvent(true);
+      }
       return true;
     }
     if (super.onTouchEvent(event)) {
@@ -313,7 +319,7 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
     }
     // None of our components reported that they handled the touch event. Upon returning false
     // from this method, our parent won't send us any more events for this gesture. Unfortunately,
-    // some componentes may have started a delayed action, such as a long-press timer, and since we
+    // some components may have started a delayed action, such as a long-press timer, and since we
     // won't receive an ACTION_UP that would cancel that timer, a false event may be triggered.
     // To prevent that we explicitly send one last cancel event when returning false.
     MotionEvent cancelEvent = MotionEvent.obtain(event);
@@ -359,8 +365,8 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
   private void onFinalImageSet() {
     FLog.v(getLogTag(), "onFinalImageSet: view %x", this.hashCode());
     if (!mZoomableController.isEnabled()) {
-      updateZoomableControllerBounds();
       mZoomableController.setEnabled(true);
+      updateZoomableControllerBounds();
     }
   }
 
@@ -394,9 +400,5 @@ public class ZoomableDraweeView extends DraweeView<GenericDraweeHierarchy>
 
   protected ZoomableController createZoomableController() {
     return AnimatedZoomableController.newInstance();
-  }
-
-  public void setExperimentalSimpleTouchHandlingEnabled(boolean enabled) {
-    mUseSimpleTouchHandling = enabled;
   }
 }

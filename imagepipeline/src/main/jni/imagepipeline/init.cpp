@@ -1,10 +1,8 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 #include <jni.h>
@@ -16,6 +14,7 @@
 #include "JpegTranscoder.h"
 #include "NativeMemoryChunk.h"
 #include "blur_filter.h"
+#include "rounding_filter.h"
 
 jmethodID midInputStreamRead;
 jmethodID midInputStreamSkip;
@@ -100,6 +99,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
   THROW_AND_RETURNVAL_IF(
       registerBlurFilterMethods(env) == JNI_ERR,
       "Could not register NativeBlurFilter methods",
+      -1);
+
+  THROW_AND_RETURNVAL_IF(
+      registerRoundingFilterMethods(env) == JNI_ERR,
+      "Could not register NativeRoundingFilter methods",
       -1);
 
   return JNI_VERSION_1_6;

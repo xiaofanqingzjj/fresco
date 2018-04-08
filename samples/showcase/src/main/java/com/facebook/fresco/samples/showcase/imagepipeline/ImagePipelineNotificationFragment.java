@@ -11,26 +11,27 @@
  */
 package com.facebook.fresco.samples.showcase.imagepipeline;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
-
 import com.facebook.common.executors.UiThreadImmediateExecutorService;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.datasource.DataSource;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.fresco.samples.showcase.BaseShowcaseFragment;
 import com.facebook.fresco.samples.showcase.R;
+import com.facebook.fresco.samples.showcase.misc.ImageUriProvider;
 import com.facebook.imagepipeline.core.ImagePipeline;
 import com.facebook.imagepipeline.datasource.BaseBitmapDataSubscriber;
 import com.facebook.imagepipeline.image.CloseableImage;
@@ -43,8 +44,7 @@ import com.facebook.imagepipeline.request.ImageRequest;
 public class ImagePipelineNotificationFragment extends BaseShowcaseFragment {
 
   private static final int NOTIFICATION_ID = 1;
-  private static final Uri URI =
-      Uri.parse("http://frescolib.org/static/sample-images/animal_b_s.jpg");
+  private static final String NOTIFICATION_CHANNEL_ID = "IMAGE-PIPELINE-NOTIFICATIONS";
 
   @Nullable
   @Override
@@ -57,18 +57,40 @@ public class ImagePipelineNotificationFragment extends BaseShowcaseFragment {
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    if (Build.VERSION.SDK_INT >= 26) {
+      // newer versions of android require the creation of notification channels to show notifications to the user.
+      createNotificationChannel();
+    }
+
     final Button button = (Button) view.findViewById(R.id.button);
-    button.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        createNotification();
-      }
-    });
+    button.setOnClickListener(
+        new View.OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            createNotification();
+          }
+        });
+  }
+
+  private void createNotificationChannel() {
+    NotificationManager mNotificationManager =
+        (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+    CharSequence name = getString(R.string.imagepipeline_notification_channel_name);
+
+    int importance =
+        NotificationManager
+            .IMPORTANCE_HIGH; // high importance shows the notification on the user screen.
+
+    NotificationChannel mChannel =
+        new NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance);
+    mNotificationManager.createNotificationChannel(mChannel);
   }
 
   private void createNotification() {
     final ImagePipeline imagePipeline = Fresco.getImagePipeline();
-    final ImageRequest imageRequest = ImageRequest.fromUri(URI);
+    final ImageUriProvider imageUriProvider = ImageUriProvider.getInstance(getContext());
+    final ImageRequest imageRequest = ImageRequest.fromUri(
+        imageUriProvider.createSampleUri(ImageUriProvider.ImageSize.S));
 
     final DataSource<CloseableReference<CloseableImage>> dataSource =
         imagePipeline.fetchDecodedImage(imageRequest, null);
@@ -94,17 +116,30 @@ public class ImagePipelineNotificationFragment extends BaseShowcaseFragment {
   }
 
   private void displayNotification(@Nullable Bitmap bitmap) {
-    final NotificationCompat.Builder notificationBuilder =
-        new NotificationCompat.Builder(getContext())
-            .setSmallIcon(R.drawable.ic_done)
-            .setLargeIcon(bitmap)
-            .setContentTitle(getString(R.string.imagepipeline_notification_content_title))
-            .setContentText(getString(R.string.imagepipeline_notification_content_text));
+    final Notification notification;
+    if (Build.VERSION.SDK_INT >= 26) {
+      notification =
+          new Notification.Builder(getContext(), NOTIFICATION_CHANNEL_ID)
+              .setSmallIcon(R.drawable.ic_done)
+              .setLargeIcon(bitmap)
+              .setContentTitle(getString(R.string.imagepipeline_notification_content_title))
+              .setContentText(getString(R.string.imagepipeline_notification_content_text))
+              .build();
+    } else {
+      notification =
+          new NotificationCompat.Builder(getContext())
+              .setSmallIcon(R.drawable.ic_done)
+              .setLargeIcon(bitmap)
+              .setContentTitle(getString(R.string.imagepipeline_notification_content_title))
+              .setContentText(getString(R.string.imagepipeline_notification_content_text))
+              .build();
+    }
 
     final NotificationManager notificationManager =
         (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
-    notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+
+    notificationManager.notify(NOTIFICATION_ID, notification);
   }
 
   private void showToastText(String text) {
@@ -115,4 +150,5 @@ public class ImagePipelineNotificationFragment extends BaseShowcaseFragment {
   public int getTitleId() {
     return R.string.imagepipeline_notification_title;
   }
+
 }

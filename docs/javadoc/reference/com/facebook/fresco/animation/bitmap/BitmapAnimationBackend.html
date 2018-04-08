@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -598,6 +598,13 @@ Summary:
     </tr>
     
     
+    <tr class="alt-color api apilevel-" >
+        <td class="jd-typecol">int</td>
+        <td class="jd-linkcol"><a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapAnimationBackend.html#FRAME_TYPE_UNKNOWN">FRAME_TYPE_UNKNOWN</a></td>
+        <td class="jd-descrcol" width="100%"></td>
+    </tr>
+    
+    
 
 </table>
 
@@ -703,7 +710,7 @@ Summary:
             
         </td>
         <td class="jd-linkcol" width="100%">
-        <span class="sympad"><a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapAnimationBackend.html#BitmapAnimationBackend(com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory, com.facebook.fresco.animation.bitmap.BitmapFrameCache, com.facebook.fresco.animation.backend.AnimationInformation, com.facebook.fresco.animation.bitmap.BitmapFrameRenderer)">BitmapAnimationBackend</a></span>(<a href="../../../../../com/facebook/imagepipeline/bitmaps/PlatformBitmapFactory.html">PlatformBitmapFactory</a> platformBitmapFactory, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameCache.html">BitmapFrameCache</a> bitmapFrameCache, <a href="../../../../../com/facebook/fresco/animation/backend/AnimationInformation.html">AnimationInformation</a> animationInformation, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameRenderer.html">BitmapFrameRenderer</a> bitmapFrameRenderer)
+        <span class="sympad"><a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapAnimationBackend.html#BitmapAnimationBackend(com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory, com.facebook.fresco.animation.bitmap.BitmapFrameCache, com.facebook.fresco.animation.backend.AnimationInformation, com.facebook.fresco.animation.bitmap.BitmapFrameRenderer, com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparationStrategy, com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparer)">BitmapAnimationBackend</a></span>(<a href="../../../../../com/facebook/imagepipeline/bitmaps/PlatformBitmapFactory.html">PlatformBitmapFactory</a> platformBitmapFactory, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameCache.html">BitmapFrameCache</a> bitmapFrameCache, <a href="../../../../../com/facebook/fresco/animation/backend/AnimationInformation.html">AnimationInformation</a> animationInformation, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameRenderer.html">BitmapFrameRenderer</a> bitmapFrameRenderer, <a href="../../../../../com/facebook/fresco/animation/bitmap/preparation/BitmapFramePreparationStrategy.html">BitmapFramePreparationStrategy</a> bitmapFramePreparationStrategy, <a href="../../../../../com/facebook/fresco/animation/bitmap/preparation/BitmapFramePreparer.html">BitmapFramePreparer</a> bitmapFramePreparer)
         
   </td></tr>
 
@@ -1680,6 +1687,46 @@ From interface
 
 
 
+<a id="FRAME_TYPE_UNKNOWN"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+        static 
+        final 
+        int
+      </span>
+        FRAME_TYPE_UNKNOWN
+    </h4>
+      <div class="api-level">
+        
+
+
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    
+        <div class="jd-tagdata">
+        <span class="jd-tagtitle">Constant Value: </span>
+        <span>
+            
+                -1
+                (0xffffffff)
+            
+        </span>
+        </div>
+    
+    </div>
+</div>
+
+
+
 
 <!-- Fields -->
 
@@ -1692,7 +1739,7 @@ From interface
 
 
 
-<a id="BitmapAnimationBackend(com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory, com.facebook.fresco.animation.bitmap.BitmapFrameCache, com.facebook.fresco.animation.backend.AnimationInformation, com.facebook.fresco.animation.bitmap.BitmapFrameRenderer)"></a>
+<a id="BitmapAnimationBackend(com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory, com.facebook.fresco.animation.bitmap.BitmapFrameCache, com.facebook.fresco.animation.backend.AnimationInformation, com.facebook.fresco.animation.bitmap.BitmapFrameRenderer, com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparationStrategy, com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparer)"></a>
 
 <div class="jd-details api apilevel-"> 
     <h4 class="jd-details-title">
@@ -1705,7 +1752,7 @@ From interface
         
       </span>
       <span class="sympad">BitmapAnimationBackend</span>
-      <span class="normal">(<a href="../../../../../com/facebook/imagepipeline/bitmaps/PlatformBitmapFactory.html">PlatformBitmapFactory</a> platformBitmapFactory, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameCache.html">BitmapFrameCache</a> bitmapFrameCache, <a href="../../../../../com/facebook/fresco/animation/backend/AnimationInformation.html">AnimationInformation</a> animationInformation, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameRenderer.html">BitmapFrameRenderer</a> bitmapFrameRenderer)</span>
+      <span class="normal">(<a href="../../../../../com/facebook/imagepipeline/bitmaps/PlatformBitmapFactory.html">PlatformBitmapFactory</a> platformBitmapFactory, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameCache.html">BitmapFrameCache</a> bitmapFrameCache, <a href="../../../../../com/facebook/fresco/animation/backend/AnimationInformation.html">AnimationInformation</a> animationInformation, <a href="../../../../../com/facebook/fresco/animation/bitmap/BitmapFrameRenderer.html">BitmapFrameRenderer</a> bitmapFrameRenderer, <a href="../../../../../com/facebook/fresco/animation/bitmap/preparation/BitmapFramePreparationStrategy.html">BitmapFramePreparationStrategy</a> bitmapFramePreparationStrategy, <a href="../../../../../com/facebook/fresco/animation/bitmap/preparation/BitmapFramePreparer.html">BitmapFramePreparer</a> bitmapFramePreparer)</span>
     </h4>
       <div class="api-level">
         <div>
@@ -2050,7 +2097,6 @@ From interface
   <div class="jd-tagdata">
       <h5 class="jd-tagtitle">Returns</h5>
       <ul class="nolist"><li>the size in bytes
-
 </li></ul>
   </div>
 

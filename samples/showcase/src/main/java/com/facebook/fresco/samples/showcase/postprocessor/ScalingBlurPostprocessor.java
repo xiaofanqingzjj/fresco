@@ -15,38 +15,41 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-
+import com.facebook.common.internal.Preconditions;
 import com.facebook.common.references.CloseableReference;
-import com.facebook.fresco.samples.showcase.imagepipeline.DurationCallback;
 import com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory;
 import com.facebook.imagepipeline.nativecode.NativeBlurFilter;
+import com.facebook.imagepipeline.request.BasePostprocessor;
 
 /**
  * Applies a blur filter using the {@link NativeBlurFilter#iterativeBoxBlur(Bitmap, int, int)} and
  * down-scales the bitmap beforehand.
  */
-public class ScalingBlurPostprocessor extends BlurPostprocessor {
+public class ScalingBlurPostprocessor extends BasePostprocessor {
 
+  private final Paint mPaint = new Paint();
+  private final int mIterations;
+  private final int mBlurRadius;
   /**
    * A scale ration of 4 means that we reduce the total number of pixels to process by factor 16.
    */
-  private static final int SCALE_RATIO = 4;
+  private final int mScaleRatio;
 
-  private final Paint mPaint = new Paint();
+  public ScalingBlurPostprocessor(int iterations, int blurRadius, int scaleRatio) {
+    Preconditions.checkArgument(scaleRatio > 0);
 
-  public ScalingBlurPostprocessor(DurationCallback durationCallback) {
-    super(durationCallback);
+    mIterations = iterations;
+    mBlurRadius = blurRadius;
+    mScaleRatio = scaleRatio;
   }
 
   @Override
   public CloseableReference<Bitmap> process(
       Bitmap sourceBitmap,
       PlatformBitmapFactory bitmapFactory) {
-    final long startNs = System.nanoTime();
-
-    final CloseableReference<Bitmap> bitmapRef = bitmapFactory.createBitmap(
-        sourceBitmap.getWidth() / SCALE_RATIO,
-        sourceBitmap.getHeight() / SCALE_RATIO);
+    final CloseableReference<Bitmap> bitmapRef =
+        bitmapFactory.createBitmap(
+            sourceBitmap.getWidth() / mScaleRatio, sourceBitmap.getHeight() / mScaleRatio);
 
     try {
       final Bitmap destBitmap = bitmapRef.get();
@@ -58,9 +61,8 @@ public class ScalingBlurPostprocessor extends BlurPostprocessor {
           new Rect(0, 0, destBitmap.getWidth(), destBitmap.getHeight()),
           mPaint);
 
-      NativeBlurFilter.iterativeBoxBlur(destBitmap, BLUR_RADIUS / SCALE_RATIO, BLUR_ITERATIONS);
-
-      showDuration(System.nanoTime() - startNs);
+      NativeBlurFilter.iterativeBoxBlur(
+          destBitmap, mIterations, Math.max(1, mBlurRadius / mScaleRatio));
 
       return CloseableReference.cloneOrNull(bitmapRef);
     } finally {

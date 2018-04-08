@@ -1,10 +1,8 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.backends.okhttp;
@@ -18,6 +16,7 @@ import com.facebook.imagepipeline.producers.BaseNetworkFetcher;
 import com.facebook.imagepipeline.producers.BaseProducerContextCallbacks;
 import com.facebook.imagepipeline.producers.Consumer;
 import com.facebook.imagepipeline.producers.FetchState;
+import com.facebook.imagepipeline.producers.NetworkFetcher;
 import com.facebook.imagepipeline.producers.ProducerContext;
 import com.squareup.okhttp.CacheControl;
 import com.squareup.okhttp.Call;
@@ -77,7 +76,8 @@ public class OkHttpNetworkFetcher extends
   }
 
   @Override
-  public void fetch(final OkHttpNetworkFetchState fetchState, final Callback callback) {
+  public void fetch(
+      final OkHttpNetworkFetchState fetchState, final NetworkFetcher.Callback callback) {
     fetchState.submitTime = SystemClock.uptimeMillis();
     final Uri uri = fetchState.getUri();
 
@@ -95,9 +95,9 @@ public class OkHttpNetworkFetcher extends
   }
 
   protected void fetchWithRequest(
-          final OkHttpNetworkFetchState fetchState,
-          final Callback callback,
-          final Request request) {
+      final OkHttpNetworkFetchState fetchState,
+      final NetworkFetcher.Callback callback,
+      final Request request) {
 
     final Call call = mOkHttpClient.newCall(request);
 

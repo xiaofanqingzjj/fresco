@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -289,6 +289,7 @@
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/DiskStorageFactory.html">DiskStorageFactory</a></li>
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ExecutorSupplier.html">ExecutorSupplier</a></li>
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/FileCacheFactory.html">FileCacheFactory</a></li>
+        <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.ProducerFactoryMethod.html">ImagePipelineExperiments.ProducerFactoryMethod</a></li>
       </ul>
     </li>
               
@@ -303,6 +304,7 @@
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.DefaultImageRequestConfig.html">ImagePipelineConfig.DefaultImageRequestConfig</a></li>
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.html">ImagePipelineExperiments</a></li>
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html">ImagePipelineExperiments.Builder</a></li>
+        <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.DefaultProducerFactoryMethod.html">ImagePipelineExperiments.DefaultProducerFactoryMethod</a></li>
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineFactory.html">ImagePipelineFactory</a></li>
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/PriorityThreadFactory.html">PriorityThreadFactory</a></li>
         <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ProducerFactory.html">ProducerFactory</a></li>
@@ -394,6 +396,10 @@
               <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/FileCacheFactory.html">FileCacheFactory</a></td>
               <td class="jd-descrcol" width="100%">Represents a factory for the FileCache to use in the ImagePipeline.&nbsp;</td>
           </tr>
+        <tr class=" api apilevel-" >
+              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.ProducerFactoryMethod.html">ImagePipelineExperiments.ProducerFactoryMethod</a></td>
+              <td class="jd-descrcol" width="100%">&nbsp;</td>
+          </tr>
   </table>
     </div>
   
@@ -443,18 +449,22 @@
               <td class="jd-descrcol" width="100%">&nbsp;</td>
           </tr>
         <tr class=" api apilevel-" >
-              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineFactory.html">ImagePipelineFactory</a></td>
-              <td class="jd-descrcol" width="100%">Factory class for the image pipeline.&nbsp;</td>
-          </tr>
-        <tr class="alt-color api apilevel-" >
-              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/PriorityThreadFactory.html">PriorityThreadFactory</a></td>
-              <td class="jd-descrcol" width="100%">ThreadFactory that applies a priority to the threads it creates.&nbsp;</td>
-          </tr>
-        <tr class=" api apilevel-" >
-              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ProducerFactory.html">ProducerFactory</a></td>
+              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.DefaultProducerFactoryMethod.html">ImagePipelineExperiments.DefaultProducerFactoryMethod</a></td>
               <td class="jd-descrcol" width="100%">&nbsp;</td>
           </tr>
         <tr class="alt-color api apilevel-" >
+              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineFactory.html">ImagePipelineFactory</a></td>
+              <td class="jd-descrcol" width="100%">Factory class for the image pipeline.&nbsp;</td>
+          </tr>
+        <tr class=" api apilevel-" >
+              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/PriorityThreadFactory.html">PriorityThreadFactory</a></td>
+              <td class="jd-descrcol" width="100%">ThreadFactory that applies a priority to the threads it creates.&nbsp;</td>
+          </tr>
+        <tr class="alt-color api apilevel-" >
+              <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ProducerFactory.html">ProducerFactory</a></td>
+              <td class="jd-descrcol" width="100%">&nbsp;</td>
+          </tr>
+        <tr class=" api apilevel-" >
               <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ProducerSequenceFactory.html">ProducerSequenceFactory</a></td>
               <td class="jd-descrcol" width="100%">&nbsp;</td>
           </tr>

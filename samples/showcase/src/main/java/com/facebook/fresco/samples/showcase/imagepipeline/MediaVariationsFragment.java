@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Toast;
-
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
@@ -36,6 +35,7 @@ import com.facebook.fresco.samples.showcase.R;
 import com.facebook.fresco.samples.showcase.imagepipeline.widget.ResizableFrameLayout;
 import com.facebook.imagepipeline.common.ResizeOptions;
 import com.facebook.imagepipeline.request.ImageRequest;
+import com.facebook.imagepipeline.request.ImageRequest.CacheChoice;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.imagepipeline.request.MediaVariations;
 
@@ -48,24 +48,32 @@ public class MediaVariationsFragment extends BaseShowcaseFragment {
   private SimpleDraweeView mMainImageDraweeView;
 
   private enum Size {
-    XS(R.id.thumb_xs, "xs", "png", 377, 523),
-    S(R.id.thumb_s, "s", "webp", 629, 871),
-    M(R.id.thumb_m, "m", "jpg", 1048, 1451),
-    L(R.id.thumb_l, "l", "jpg", 1747, 2418),
-    XL(R.id.thumb_xl, "xl", "jpg", 2912, 4030);
+    XS(R.id.thumb_xs, "xs", "png", 377, 523, CacheChoice.SMALL),
+    S(R.id.thumb_s, "s", "webp", 629, 871, CacheChoice.SMALL),
+    M(R.id.thumb_m, "m", "jpg", 1048, 1451, CacheChoice.DEFAULT),
+    L(R.id.thumb_l, "l", "jpg", 1747, 2418, CacheChoice.DEFAULT),
+    XL(R.id.thumb_xl, "xl", "jpg", 2912, 4030, CacheChoice.DEFAULT);
 
     final @IdRes int thumbViewId;
     final String name;
     final Uri uri;
     final int width;
     final int height;
+    final CacheChoice cacheChoice;
 
-    Size(@IdRes int thumbViewId, String name, String extension, int width, int height) {
+    Size(
+        @IdRes int thumbViewId,
+        String name,
+        String extension,
+        int width,
+        int height,
+        CacheChoice cacheChoice) {
       this.thumbViewId = thumbViewId;
       this.name = name;
       this.uri = Uri.parse(String.format(URI_TEMPLATE, name, extension));
       this.width = width;
       this.height = height;
+      this.cacheChoice = cacheChoice;
     }
   }
 
@@ -75,10 +83,7 @@ public class MediaVariationsFragment extends BaseShowcaseFragment {
         R.string.imagepipeline_media_variations_toast_mode_media_id),
     LISTED_IN_REQUEST(
         R.id.media_variations_mode_listed_variants,
-        R.string.imagepipeline_media_variations_toast_mode_listed_variants),
-    RELY_ON_MEDIA_ID_EXTRACTOR(
-        R.id.media_variations_mode_media_id_extractor,
-        R.string.imagepipeline_media_variations_toast_mode_media_id_extractor);
+        R.string.imagepipeline_media_variations_toast_mode_listed_variants);
 
     final @IdRes int menuItemId;
     final @StringRes int toastMessageId;
@@ -200,6 +205,7 @@ public class MediaVariationsFragment extends BaseShowcaseFragment {
             .build())
         .setLowestPermittedRequestLevel(requestLevel)
         .setResizeOptions(new ResizeOptions(draweeView.getWidth(), draweeView.getHeight()))
+        .setCacheChoice(size.cacheChoice)
         .build();
     DraweeController controller = Fresco.newDraweeControllerBuilder()
         .setImageRequest(request)
@@ -242,7 +248,7 @@ public class MediaVariationsFragment extends BaseShowcaseFragment {
   }
 
   private void clearMainImageAndBitmapCache() {
-    Uri uri = Uri.parse(String.format(URI_TEMPLATE, "full"));
+    Uri uri = Uri.parse(String.format(URI_TEMPLATE, "full", "jpg"));
     setDraweeControllerForRequest(ImageRequest.fromUri(uri));
 
     Fresco.getImagePipeline().clearMemoryCaches();
@@ -268,10 +274,6 @@ public class MediaVariationsFragment extends BaseShowcaseFragment {
         return builder.build();
       case MEDIA_ID_IN_REQUEST:
         return MediaVariations.forMediaId(MEDIA_ID);
-      case RELY_ON_MEDIA_ID_EXTRACTOR:
-        // Dependent on ShowcaseMediaIdExtractor being set as part of the config
-        // This is done in ShowcaseApplication
-        return null;
     }
     throw new IllegalStateException("Invalid media variations mode set");
   }

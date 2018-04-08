@@ -1,14 +1,10 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.facebook.drawee.debug;
-
-import javax.annotation.Nullable;
 
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -19,14 +15,13 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
-
 import com.facebook.common.internal.VisibleForTesting;
+import com.facebook.drawee.debug.listener.ImageLoadingTimeListener;
 import com.facebook.drawee.drawable.ScalingUtils.ScaleType;
+import javax.annotation.Nullable;
 
-/**
- * Drawee Controller overlay that displays debug information.
- */
-public class DebugControllerOverlayDrawable extends Drawable {
+/** Drawee Controller overlay that displays debug information. */
+public class DebugControllerOverlayDrawable extends Drawable implements ImageLoadingTimeListener {
 
   private static final String NO_CONTROLLER_ID = "none";
 
@@ -60,6 +55,7 @@ public class DebugControllerOverlayDrawable extends Drawable {
 
   // General information
   private String mControllerId;
+  private String mImageId;
   private int mWidthPx;
   private int mHeightPx;
   private int mImageSizeBytes;
@@ -85,6 +81,8 @@ public class DebugControllerOverlayDrawable extends Drawable {
   private int mCurrentTextXPx;
   private int mCurrentTextYPx;
 
+  private long mFinalImageTimeMs;
+
   public DebugControllerOverlayDrawable() {
     reset();
   }
@@ -97,6 +95,7 @@ public class DebugControllerOverlayDrawable extends Drawable {
     mLoopCount = -1;
     mImageFormat = null;
     setControllerId(null);
+    mFinalImageTimeMs = -1;
     invalidateSelf();
   }
 
@@ -114,6 +113,11 @@ public class DebugControllerOverlayDrawable extends Drawable {
 
   public void setControllerId(@Nullable String controllerId) {
     mControllerId = controllerId != null ? controllerId : NO_CONTROLLER_ID;
+    invalidateSelf();
+  }
+
+  public void setImageId(@Nullable String imageId) {
+    mImageId = imageId;
     invalidateSelf();
   }
 
@@ -178,7 +182,11 @@ public class DebugControllerOverlayDrawable extends Drawable {
     mCurrentTextXPx = mStartTextXPx;
     mCurrentTextYPx = mStartTextYPx;
 
-    addDebugText(canvas, "ID: %s", mControllerId);
+    if (mImageId != null) {
+      addDebugText(canvas, "IDs: %s, %s", mControllerId, mImageId);
+    } else {
+      addDebugText(canvas, "ID: %s", mControllerId);
+    }
     addDebugText(canvas, "D: %dx%d", bounds.width(), bounds.height());
     addDebugText(canvas, "I: %dx%d", mWidthPx, mHeightPx);
     addDebugText(canvas, "I: %d KiB", (mImageSizeBytes / 1024));
@@ -190,6 +198,9 @@ public class DebugControllerOverlayDrawable extends Drawable {
     }
     if (mScaleType != null) {
       addDebugText(canvas, "scale: %s", mScaleType);
+    }
+    if (mFinalImageTimeMs >= 0) {
+      addDebugText(canvas, "t: %d ms", mFinalImageTimeMs);
     }
   }
 
@@ -291,5 +302,15 @@ public class DebugControllerOverlayDrawable extends Drawable {
       return OVERLAY_COLOR_IMAGE_ALMOST_OK;
     }
     return OVERLAY_COLOR_IMAGE_NOT_OK;
+  }
+
+  public void setFinalImageTimeMs(long finalImageTimeMs) {
+    mFinalImageTimeMs = finalImageTimeMs;
+  }
+
+  @Override
+  public void onFinalImageSet(long finalImageTimeMs) {
+    mFinalImageTimeMs = finalImageTimeMs;
+    invalidateSelf();
   }
 }

@@ -1,25 +1,21 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imageformat;
-
-import javax.annotation.Nullable;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 import com.facebook.common.internal.ByteStreams;
 import com.facebook.common.internal.Closeables;
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.internal.Throwables;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Detects the format of an encoded image.
@@ -50,19 +46,20 @@ public class ImageFormatChecker {
     final byte[] imageHeaderBytes = new byte[mMaxHeaderLength];
     final int headerSize = readHeaderFromStream(mMaxHeaderLength, is, imageHeaderBytes);
 
+    ImageFormat format = mDefaultFormatChecker.determineFormat(imageHeaderBytes, headerSize);
+    if (format != null && format != ImageFormat.UNKNOWN) {
+      return format;
+    }
+
     if (mCustomImageFormatCheckers != null) {
       for (ImageFormat.FormatChecker formatChecker : mCustomImageFormatCheckers) {
-        ImageFormat format = formatChecker.determineFormat(imageHeaderBytes, headerSize);
+        format = formatChecker.determineFormat(imageHeaderBytes, headerSize);
         if (format != null && format != ImageFormat.UNKNOWN) {
           return format;
         }
       }
     }
-    ImageFormat format = mDefaultFormatChecker.determineFormat(imageHeaderBytes, headerSize);
-    if (format == null) {
-      format = ImageFormat.UNKNOWN;
-    }
-    return format;
+    return ImageFormat.UNKNOWN;
   }
 
   private void updateMaxHeaderLength() {

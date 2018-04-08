@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.facebook.samples.zoomableapp"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion rootProject.ext.samplesMinSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "${VERSION_NAME}"
@@ -15,6 +15,8 @@ android {
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
 
+    flavorDimensions "main"
+
     productFlavors {
         internal
     }
@@ -22,7 +24,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), '../../proguard-fresco.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
         }
     }
 
@@ -46,9 +48,9 @@ configurations {
 }
 
 dependencies {
-    provided "com.android.support:support-annotations:${SUPPORT_LIB_VERSION}"
-    compile "com.android.support:support-core-ui:${SUPPORT_LIB_VERSION}"
+    compileOnly "com.android.support:support-annotations:${SUPPORT_LIB_VERSION}"
+    implementation "com.android.support:support-core-ui:${SUPPORT_LIB_VERSION}"
 
-    internalCompile project(':drawee-backends:drawee-pipeline')
-    compile project(path: ':samples:zoomable')
+    internalImplementation project(':drawee-backends:drawee-pipeline')
+    implementation project(path: ':samples:zoomable')
 }

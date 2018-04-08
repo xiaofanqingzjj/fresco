@@ -1,48 +1,11 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.core;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import android.net.Uri;
-
-import com.facebook.common.internal.Preconditions;
-import com.facebook.common.internal.VisibleForTesting;
-import com.facebook.common.memory.PooledByteBuffer;
-import com.facebook.common.references.CloseableReference;
-import com.facebook.common.webp.WebpSupportStatus;
-import com.facebook.imagepipeline.image.CloseableImage;
-import com.facebook.imagepipeline.image.EncodedImage;
-import com.facebook.imagepipeline.producers.BitmapMemoryCacheKeyMultiplexProducer;
-import com.facebook.imagepipeline.producers.BitmapMemoryCacheProducer;
-import com.facebook.imagepipeline.producers.DecodeProducer;
-import com.facebook.imagepipeline.producers.EncodedMemoryCacheProducer;
-import com.facebook.imagepipeline.producers.QualifiedResourceFetchProducer;
-import com.facebook.imagepipeline.producers.LocalAssetFetchProducer;
-import com.facebook.imagepipeline.producers.LocalContentUriFetchProducer;
-import com.facebook.imagepipeline.producers.LocalFileFetchProducer;
-import com.facebook.imagepipeline.producers.LocalResourceFetchProducer;
-import com.facebook.imagepipeline.producers.LocalVideoThumbnailProducer;
-import com.facebook.imagepipeline.producers.NetworkFetcher;
-import com.facebook.imagepipeline.producers.PostprocessedBitmapMemoryCacheProducer;
-import com.facebook.imagepipeline.producers.PostprocessorProducer;
-import com.facebook.imagepipeline.producers.Producer;
-import com.facebook.imagepipeline.producers.RemoveImageTransformMetaDataProducer;
-import com.facebook.imagepipeline.producers.SwallowResultProducer;
-import com.facebook.imagepipeline.producers.ThreadHandoffProducer;
-import com.facebook.imagepipeline.producers.ThreadHandoffProducerQueue;
-import com.facebook.imagepipeline.producers.ThrottlingProducer;
-import com.facebook.imagepipeline.producers.ThumbnailBranchProducer;
-import com.facebook.imagepipeline.producers.ThumbnailProducer;
-import com.facebook.imagepipeline.request.ImageRequest;
 
 import static com.facebook.imagepipeline.common.SourceUriType.SOURCE_TYPE_DATA;
 import static com.facebook.imagepipeline.common.SourceUriType.SOURCE_TYPE_LOCAL_ASSET;
@@ -53,14 +16,52 @@ import static com.facebook.imagepipeline.common.SourceUriType.SOURCE_TYPE_LOCAL_
 import static com.facebook.imagepipeline.common.SourceUriType.SOURCE_TYPE_NETWORK;
 import static com.facebook.imagepipeline.common.SourceUriType.SOURCE_TYPE_QUALIFIED_RESOURCE;
 
+import android.content.ContentResolver;
+import android.net.Uri;
+import com.facebook.common.internal.Preconditions;
+import com.facebook.common.internal.VisibleForTesting;
+import com.facebook.common.media.MediaUtils;
+import com.facebook.common.memory.PooledByteBuffer;
+import com.facebook.common.references.CloseableReference;
+import com.facebook.common.webp.WebpSupportStatus;
+import com.facebook.imagepipeline.image.CloseableImage;
+import com.facebook.imagepipeline.image.EncodedImage;
+import com.facebook.imagepipeline.producers.BitmapMemoryCacheKeyMultiplexProducer;
+import com.facebook.imagepipeline.producers.BitmapMemoryCacheProducer;
+import com.facebook.imagepipeline.producers.DecodeProducer;
+import com.facebook.imagepipeline.producers.EncodedMemoryCacheProducer;
+import com.facebook.imagepipeline.producers.LocalAssetFetchProducer;
+import com.facebook.imagepipeline.producers.LocalContentUriFetchProducer;
+import com.facebook.imagepipeline.producers.LocalFileFetchProducer;
+import com.facebook.imagepipeline.producers.LocalResourceFetchProducer;
+import com.facebook.imagepipeline.producers.LocalVideoThumbnailProducer;
+import com.facebook.imagepipeline.producers.NetworkFetcher;
+import com.facebook.imagepipeline.producers.PostprocessedBitmapMemoryCacheProducer;
+import com.facebook.imagepipeline.producers.PostprocessorProducer;
+import com.facebook.imagepipeline.producers.Producer;
+import com.facebook.imagepipeline.producers.QualifiedResourceFetchProducer;
+import com.facebook.imagepipeline.producers.RemoveImageTransformMetaDataProducer;
+import com.facebook.imagepipeline.producers.SwallowResultProducer;
+import com.facebook.imagepipeline.producers.ThreadHandoffProducer;
+import com.facebook.imagepipeline.producers.ThreadHandoffProducerQueue;
+import com.facebook.imagepipeline.producers.ThrottlingProducer;
+import com.facebook.imagepipeline.producers.ThumbnailBranchProducer;
+import com.facebook.imagepipeline.producers.ThumbnailProducer;
+import com.facebook.imagepipeline.request.ImageRequest;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ProducerSequenceFactory {
 
+  private final ContentResolver mContentResolver;
   private final ProducerFactory mProducerFactory;
   private final NetworkFetcher mNetworkFetcher;
   private final boolean mResizeAndRotateEnabledForNetwork;
   private final boolean mWebpSupportEnabled;
+  private final boolean mPartialImageCachingEnabled;
   private final ThreadHandoffProducerQueue mThreadHandoffProducerQueue;
   private final boolean mUseDownsamplingRatio;
+  private final boolean mUseBitmapPrepareToDraw;
 
   // Saved sequences
   @VisibleForTesting Producer<CloseableReference<CloseableImage>> mNetworkFetchSequence;
@@ -86,22 +87,33 @@ public class ProducerSequenceFactory {
       mPostprocessorSequences;
   @VisibleForTesting Map<Producer<CloseableReference<CloseableImage>>, Producer<Void>>
       mCloseableImagePrefetchSequences;
+  @VisibleForTesting Map<
+      Producer<CloseableReference<CloseableImage>>,
+      Producer<CloseableReference<CloseableImage>>>
+      mBitmapPrepareSequences;
 
   public ProducerSequenceFactory(
+      ContentResolver contentResolver,
       ProducerFactory producerFactory,
       NetworkFetcher networkFetcher,
       boolean resizeAndRotateEnabledForNetwork,
       boolean webpSupportEnabled,
       ThreadHandoffProducerQueue threadHandoffProducerQueue,
-      boolean useDownsamplingRatio) {
+      boolean useDownsamplingRatio,
+      boolean useBitmapPrepareToDraw,
+      boolean partialImageCachingEnabled) {
+    mContentResolver = contentResolver;
     mProducerFactory = producerFactory;
     mNetworkFetcher = networkFetcher;
     mResizeAndRotateEnabledForNetwork = resizeAndRotateEnabledForNetwork;
     mWebpSupportEnabled = webpSupportEnabled;
     mPostprocessorSequences = new HashMap<>();
     mCloseableImagePrefetchSequences = new HashMap<>();
+    mBitmapPrepareSequences = new HashMap<>();
     mThreadHandoffProducerQueue = threadHandoffProducerQueue;
     mUseDownsamplingRatio = useDownsamplingRatio;
+    mUseBitmapPrepareToDraw = useBitmapPrepareToDraw;
+    mPartialImageCachingEnabled = partialImageCachingEnabled;
   }
 
   /**
@@ -200,11 +212,16 @@ public class ProducerSequenceFactory {
       ImageRequest imageRequest) {
     Producer<CloseableReference<CloseableImage>> pipelineSequence =
         getBasicDecodedImageSequence(imageRequest);
+
     if (imageRequest.getPostprocessor() != null) {
-      return getPostprocessorSequence(pipelineSequence);
-    } else {
-      return pipelineSequence;
+      pipelineSequence = getPostprocessorSequence(pipelineSequence);
     }
+
+    if (mUseBitmapPrepareToDraw) {
+      pipelineSequence = getBitmapPrepareSequence(pipelineSequence);
+    }
+
+    return pipelineSequence;
   }
 
   /**
@@ -215,7 +232,14 @@ public class ProducerSequenceFactory {
    */
   public Producer<Void> getDecodedImagePrefetchProducerSequence(
       ImageRequest imageRequest) {
-    return getDecodedImagePrefetchSequence(getBasicDecodedImageSequence(imageRequest));
+    Producer<CloseableReference<CloseableImage>> inputProducer =
+        getBasicDecodedImageSequence(imageRequest);
+
+    if (mUseBitmapPrepareToDraw) {
+      inputProducer = getBitmapPrepareSequence(inputProducer);
+    }
+
+    return getDecodedImagePrefetchSequence(inputProducer);
   }
 
   private Producer<CloseableReference<CloseableImage>> getBasicDecodedImageSequence(
@@ -233,6 +257,9 @@ public class ProducerSequenceFactory {
       case SOURCE_TYPE_LOCAL_IMAGE_FILE:
         return getLocalImageFileFetchSequence();
       case SOURCE_TYPE_LOCAL_CONTENT:
+        if (MediaUtils.isVideo(mContentResolver.getType(uri))) {
+          return getLocalVideoFileFetchSequence();
+        }
         return getLocalContentUriFetchSequence();
       case SOURCE_TYPE_LOCAL_ASSET:
         return getLocalAssetFetchSequence();
@@ -538,8 +565,14 @@ public class ProducerSequenceFactory {
   }
 
   private Producer<EncodedImage> newDiskCacheSequence(Producer<EncodedImage> inputProducer) {
-    Producer<EncodedImage> cacheWriteProducer =
-        mProducerFactory.newDiskCacheWriteProducer(inputProducer);
+    Producer<EncodedImage> cacheWriteProducer;
+    if (mPartialImageCachingEnabled) {
+      Producer<EncodedImage> partialDiskCacheProducer =
+          mProducerFactory.newPartialDiskCacheProducer(inputProducer);
+      cacheWriteProducer = mProducerFactory.newDiskCacheWriteProducer(partialDiskCacheProducer);
+    } else {
+      cacheWriteProducer = mProducerFactory.newDiskCacheWriteProducer(inputProducer);
+    }
     Producer<EncodedImage> mediaVariationsProducer =
         mProducerFactory.newMediaVariationsProducer(cacheWriteProducer);
     return mProducerFactory.newDiskCacheReadProducer(mediaVariationsProducer);
@@ -627,6 +660,22 @@ public class ProducerSequenceFactory {
       mCloseableImagePrefetchSequences.put(inputProducer, swallowResultProducer);
     }
     return mCloseableImagePrefetchSequences.get(inputProducer);
+  }
+
+  /**
+   * bitmap prepare producer -> inputProducer
+   */
+  private synchronized Producer<CloseableReference<CloseableImage>> getBitmapPrepareSequence(
+      Producer<CloseableReference<CloseableImage>> inputProducer) {
+    Producer<CloseableReference<CloseableImage>> bitmapPrepareProducer =
+        mBitmapPrepareSequences.get(inputProducer);
+
+    if (bitmapPrepareProducer == null) {
+      bitmapPrepareProducer = mProducerFactory.newBitmapPrepareProducer(inputProducer);
+      mBitmapPrepareSequences.put(inputProducer, bitmapPrepareProducer);
+    }
+
+    return bitmapPrepareProducer;
   }
 
   private static String getShortenedUriString(Uri uri) {

@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -289,6 +289,7 @@
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/DiskStorageFactory.html">DiskStorageFactory</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ExecutorSupplier.html">ExecutorSupplier</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/FileCacheFactory.html">FileCacheFactory</a></li>
+          <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.ProducerFactoryMethod.html">ImagePipelineExperiments.ProducerFactoryMethod</a></li>
       </ul>
     </li>
               
@@ -303,6 +304,7 @@
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.DefaultImageRequestConfig.html">ImagePipelineConfig.DefaultImageRequestConfig</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.html">ImagePipelineExperiments</a></li>
           <li class="selected api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html">ImagePipelineExperiments.Builder</a></li>
+          <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.DefaultProducerFactoryMethod.html">ImagePipelineExperiments.DefaultProducerFactoryMethod</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineFactory.html">ImagePipelineFactory</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/PriorityThreadFactory.html">PriorityThreadFactory</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/core/ProducerFactory.html">ProducerFactory</a></li>
@@ -369,9 +371,12 @@ Summary:
 
 
 
+  <a href="#lfields">Fields</a>
+  
 
 
-  <a href="#pubctors">Ctors</a>
+
+  &#124; <a href="#pubctors">Ctors</a>
   
 
 
@@ -496,6 +501,26 @@ Summary:
 
 
 
+<!-- =========== FIELD SUMMARY =========== -->
+<table id="lfields" class="jd-sumtable"><tr><th colspan="12">Fields</th></tr>
+
+
+    
+      <tr class="alt-color api apilevel-" >
+          <td class="jd-typecol">
+          public
+          
+          
+          boolean</td>
+          <td class="jd-linkcol"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#mBitmapPrepareToDrawForPrefetch">mBitmapPrepareToDrawForPrefetch</a></td>
+          <td class="jd-descrcol" width="100%"></td>
+      </tr>
+      
+    
+
+</table>
+
+
 
 
 
@@ -559,6 +584,41 @@ Summary:
             
             
             
+            boolean
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#isPartialImageCachingEnabled()">isPartialImageCachingEnabled</a></span>()
+        
+  </td></tr>
+
+
+	 
+    <tr class="alt-color api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setBitmapPrepareToDraw(boolean, int, int, boolean)">setBitmapPrepareToDraw</a></span>(boolean useBitmapPrepareToDraw, int minBitmapSizeBytes, int maxBitmapSizeBytes, boolean preparePrefetch)
+        
+        <div class="jd-descrdiv">If enabled, the pipeline will call <code><a href="null#prepareToDraw()">prepareToDraw()</a></code> after
+ decoding.</div>
+  
+  </td></tr>
+
+
+	 
+    <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
             <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
         </td>
         <td class="jd-linkcol" width="100%">
@@ -596,43 +656,6 @@ Summary:
             <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
         </td>
         <td class="jd-linkcol" width="100%">
-        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setForceSmallCacheThresholdBytes(int)">setForceSmallCacheThresholdBytes</a></span>(int forceSmallCacheThresholdBytes)
-        
-        <div class="jd-descrdiv">If this value is nonnegative, then all network-downloaded images below this size will be
- written to the small image cache.</div>
-  
-  </td></tr>
-
-
-	 
-    <tr class="alt-color api apilevel-" >
-        <td class="jd-typecol">
-            
-            
-            
-            
-            
-            <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
-        </td>
-        <td class="jd-linkcol" width="100%">
-        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setMediaIdExtractor(com.facebook.imagepipeline.cache.MediaIdExtractor)">setMediaIdExtractor</a></span>(<a href="../../../../com/facebook/imagepipeline/cache/MediaIdExtractor.html">MediaIdExtractor</a> mediaIdExtractor)
-        
-        <div class="jd-descrdiv">Sets experimental media ID extractor to pull IDs from URIs.</div>
-  
-  </td></tr>
-
-
-	 
-    <tr class=" api apilevel-" >
-        <td class="jd-typecol">
-            
-            
-            
-            
-            
-            <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
-        </td>
-        <td class="jd-linkcol" width="100%">
         <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setMediaVariationsIndexEnabled(com.facebook.common.internal.Supplier<java.lang.Boolean>)">setMediaVariationsIndexEnabled</a></span>(<a href="../../../../com/facebook/common/internal/Supplier.html">Supplier</a>&lt;Boolean&gt; mediaVariationsIndexEnabled)
         
         <div class="jd-descrdiv">If true, this will allow the image pipeline to keep an index of the ID in each request's
@@ -654,13 +677,68 @@ Summary:
             <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
         </td>
         <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setPartialImageCachingEnabled(boolean)">setPartialImageCachingEnabled</a></span>(boolean partialImageCachingEnabled)
+        
+        <div class="jd-descrdiv">Enables the caching of partial image data, for example if the request is cancelled or fails
+ after some data has been received.</div>
+  
+  </td></tr>
+
+
+	 
+    <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setProducerFactoryMethod(com.facebook.imagepipeline.core.ImagePipelineExperiments.ProducerFactoryMethod)">setProducerFactoryMethod</a></span>(<a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.ProducerFactoryMethod.html">ImagePipelineExperiments.ProducerFactoryMethod</a> producerFactoryMethod)
+        
+        <div class="jd-descrdiv">Stores an alternative method to instantiate the <code><a href="../../../../com/facebook/imagepipeline/core/ProducerFactory.html">ProducerFactory</a></code>.</div>
+  
+  </td></tr>
+
+
+	 
+    <tr class="alt-color api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setSmartResizingEnabled(com.facebook.common.internal.Supplier<java.lang.Boolean>)">setSmartResizingEnabled</a></span>(<a href="../../../../com/facebook/common/internal/Supplier.html">Supplier</a>&lt;Boolean&gt; smartResizingEnabled)
+        
+        <div class="jd-descrdiv">Smart resizing combines transcoding and downsampling depending on the image format.</div>
+  
+  </td></tr>
+
+
+	 
+    <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+        </td>
+        <td class="jd-linkcol" width="100%">
         <span class="sympad"><a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.Builder.html#setSuppressBitmapPrefetching(boolean)">setSuppressBitmapPrefetching</a></span>(boolean suppressBitmapPrefetching)
         
   </td></tr>
 
 
 	 
-    <tr class=" api apilevel-" >
+    <tr class="alt-color api apilevel-" >
         <td class="jd-typecol">
             
             
@@ -676,7 +754,7 @@ Summary:
 
 
 	 
-    <tr class="alt-color api apilevel-" >
+    <tr class=" api apilevel-" >
         <td class="jd-typecol">
             
             
@@ -692,7 +770,7 @@ Summary:
 
 
 	 
-    <tr class=" api apilevel-" >
+    <tr class="alt-color api apilevel-" >
         <td class="jd-typecol">
             
             
@@ -708,7 +786,7 @@ Summary:
 
 
 	 
-    <tr class="alt-color api apilevel-" >
+    <tr class=" api apilevel-" >
         <td class="jd-typecol">
             
             
@@ -965,6 +1043,43 @@ From class
 <!-- Fields -->
 
 
+<!-- ========= FIELD DETAIL ======== -->
+<h2>Fields</h2>
+
+
+
+
+<a id="mBitmapPrepareToDrawForPrefetch"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+        boolean
+      </span>
+        mBitmapPrepareToDrawForPrefetch
+    </h4>
+      <div class="api-level">
+        
+
+
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    
+    </div>
+</div>
+
+
+
+
 <!-- Public ctors -->
 
 
@@ -1050,6 +1165,99 @@ From class
 </div>
 
 
+<a id="isPartialImageCachingEnabled()"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        boolean
+      </span>
+      <span class="sympad">isPartialImageCachingEnabled</span>
+      <span class="normal">()</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
+<a id="setBitmapPrepareToDraw(boolean, int, int, boolean)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+      </span>
+      <span class="sympad">setBitmapPrepareToDraw</span>
+      <span class="normal">(boolean useBitmapPrepareToDraw, int minBitmapSizeBytes, int maxBitmapSizeBytes, boolean preparePrefetch)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>If enabled, the pipeline will call <code><a href="null#prepareToDraw()">prepareToDraw()</a></code> after
+ decoding. This potentially reduces lag on Android N+ as this step now happens async when the
+ RendererThread is idle.</p></div>
+  <div class="jd-tagdata">
+      <h5 class="jd-tagtitle">Parameters</h5>
+      <table class="jd-tagtable">
+        <tr>
+          <th>useBitmapPrepareToDraw</th>
+          <td>set true for enabling prepareToDraw</td>
+        </tr>
+        <tr>
+          <th>minBitmapSizeBytes</th>
+          <td>Bitmaps with a <code><a href="null#getByteCount()">getByteCount()</a></code> smaller than this
+     value are not uploaded</td>
+        </tr>
+        <tr>
+          <th>maxBitmapSizeBytes</th>
+          <td>Bitmaps with a <code><a href="null#getByteCount()">getByteCount()</a></code> larger than this value
+     are not uploaded</td>
+        </tr>
+        <tr>
+          <th>preparePrefetch</th>
+          <td>If this is true, also pre-fetching image requests will trigger the
+     <code><a href="null#prepareToDraw()">prepareToDraw()</a></code> call.</td>
+        </tr>
+      </table>
+  </div>
+  <div class="jd-tagdata">
+      <h5 class="jd-tagtitle">Returns</h5>
+      <ul class="nolist"><li>The Builder itself for chaining
+</li></ul>
+  </div>
+
+    </div>
+</div>
+
+
 <a id="setDecodeCancellationEnabled(boolean)"></a>
 
 <div class="jd-details api apilevel-"> 
@@ -1126,76 +1334,6 @@ From class
 </div>
 
 
-<a id="setForceSmallCacheThresholdBytes(int)"></a>
-
-<div class="jd-details api apilevel-"> 
-    <h4 class="jd-details-title">
-      <span class="normal">
-        public 
-         
-         
-         
-         
-        <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
-      </span>
-      <span class="sympad">setForceSmallCacheThresholdBytes</span>
-      <span class="normal">(int forceSmallCacheThresholdBytes)</span>
-    </h4>
-      <div class="api-level">
-        <div>
-
-</div>
-        
-  
-
-      </div>
-    <div class="jd-details-descr">
-      
-  <div class="jd-tagdata jd-tagdescr"><p>If this value is nonnegative, then all network-downloaded images below this size will be
- written to the small image cache.
-
- <p>This will require the image pipeline to do up to two disk reads, instead of one, before
- going out to network. Use only if this pattern makes sense for your application.
-</p></div>
-
-    </div>
-</div>
-
-
-<a id="setMediaIdExtractor(com.facebook.imagepipeline.cache.MediaIdExtractor)"></a>
-
-<div class="jd-details api apilevel-"> 
-    <h4 class="jd-details-title">
-      <span class="normal">
-        public 
-         
-         
-         
-         
-        <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
-      </span>
-      <span class="sympad">setMediaIdExtractor</span>
-      <span class="normal">(<a href="../../../../com/facebook/imagepipeline/cache/MediaIdExtractor.html">MediaIdExtractor</a> mediaIdExtractor)</span>
-    </h4>
-      <div class="api-level">
-        <div>
-
-</div>
-        
-  
-
-      </div>
-    <div class="jd-details-descr">
-      
-  <div class="jd-tagdata jd-tagdescr"><p>Sets experimental media ID extractor to pull IDs from URIs. This isn't currently recommended
- as a long-term collaborator but can be useful for identifying where media IDs would be most
- effective.
-</p></div>
-
-    </div>
-</div>
-
-
 <a id="setMediaVariationsIndexEnabled(com.facebook.common.internal.Supplier<java.lang.Boolean>)"></a>
 
 <div class="jd-details api apilevel-"> 
@@ -1226,6 +1364,117 @@ From class
  provide fallback images which are present in cache, without the need to explicitly provide
  alternative variants of the image in the request.
 </p></div>
+
+    </div>
+</div>
+
+
+<a id="setPartialImageCachingEnabled(boolean)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+      </span>
+      <span class="sympad">setPartialImageCachingEnabled</span>
+      <span class="normal">(boolean partialImageCachingEnabled)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>Enables the caching of partial image data, for example if the request is cancelled or fails
+ after some data has been received.
+</p></div>
+
+    </div>
+</div>
+
+
+<a id="setProducerFactoryMethod(com.facebook.imagepipeline.core.ImagePipelineExperiments.ProducerFactoryMethod)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+      </span>
+      <span class="sympad">setProducerFactoryMethod</span>
+      <span class="normal">(<a href="../../../../com/facebook/imagepipeline/core/ImagePipelineExperiments.ProducerFactoryMethod.html">ImagePipelineExperiments.ProducerFactoryMethod</a> producerFactoryMethod)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>Stores an alternative method to instantiate the <code><a href="../../../../com/facebook/imagepipeline/core/ProducerFactory.html">ProducerFactory</a></code>. This allows
+ experimenting with overridden producers.
+</p></div>
+
+    </div>
+</div>
+
+
+<a id="setSmartResizingEnabled(com.facebook.common.internal.Supplier<java.lang.Boolean>)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        <a href="../../../../com/facebook/imagepipeline/core/ImagePipelineConfig.Builder.html">ImagePipelineConfig.Builder</a>
+      </span>
+      <span class="sympad">setSmartResizingEnabled</span>
+      <span class="normal">(<a href="../../../../com/facebook/common/internal/Supplier.html">Supplier</a>&lt;Boolean&gt; smartResizingEnabled)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>Smart resizing combines transcoding and downsampling depending on the image format.</p></div>
+  <div class="jd-tagdata">
+      <h5 class="jd-tagtitle">Parameters</h5>
+      <table class="jd-tagtable">
+        <tr>
+          <th>smartResizingEnabled</th>
+          <td>true if smart resizing should be enabled</td>
+        </tr>
+      </table>
+  </div>
+  <div class="jd-tagdata">
+      <h5 class="jd-tagtitle">Returns</h5>
+      <ul class="nolist"><li>The Builder itself for chaining
+</li></ul>
+  </div>
 
     </div>
 </div>

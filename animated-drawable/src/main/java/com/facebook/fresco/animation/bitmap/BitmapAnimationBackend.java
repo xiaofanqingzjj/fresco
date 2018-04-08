@@ -1,16 +1,12 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.facebook.fresco.animation.bitmap;
 
-import javax.annotation.Nullable;
-
-import java.lang.annotation.Retention;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -20,14 +16,16 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.support.annotation.IntRange;
-
+import com.facebook.common.logging.FLog;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.fresco.animation.backend.AnimationBackend;
 import com.facebook.fresco.animation.backend.AnimationBackendDelegateWithInactivityCheck;
 import com.facebook.fresco.animation.backend.AnimationInformation;
+import com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparationStrategy;
+import com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparer;
 import com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import java.lang.annotation.Retention;
+import javax.annotation.Nullable;
 
 /**
  * Bitmap animation backend that renders bitmap frames.
@@ -73,23 +71,32 @@ public class BitmapAnimationBackend implements AnimationBackend,
    */
   @Retention(SOURCE)
   @IntDef({
+      FRAME_TYPE_UNKNOWN,
       FRAME_TYPE_CACHED,
       FRAME_TYPE_REUSED,
       FRAME_TYPE_CREATED,
       FRAME_TYPE_FALLBACK,
   })
   public @interface FrameType {
+
   }
 
+  public static final int FRAME_TYPE_UNKNOWN = -1;
   public static final int FRAME_TYPE_CACHED = 0;
   public static final int FRAME_TYPE_REUSED = 1;
   public static final int FRAME_TYPE_CREATED = 2;
   public static final int FRAME_TYPE_FALLBACK = 3;
 
+  private static final Class<?> TAG = BitmapAnimationBackend.class;
+
   private final PlatformBitmapFactory mPlatformBitmapFactory;
   private final BitmapFrameCache mBitmapFrameCache;
   private final AnimationInformation mAnimationInformation;
   private final BitmapFrameRenderer mBitmapFrameRenderer;
+  @Nullable
+  private final BitmapFramePreparationStrategy mBitmapFramePreparationStrategy;
+  @Nullable
+  private final BitmapFramePreparer mBitmapFramePreparer;
   private final Paint mPaint;
 
   @Nullable
@@ -104,11 +111,15 @@ public class BitmapAnimationBackend implements AnimationBackend,
       PlatformBitmapFactory platformBitmapFactory,
       BitmapFrameCache bitmapFrameCache,
       AnimationInformation animationInformation,
-      BitmapFrameRenderer bitmapFrameRenderer) {
+      BitmapFrameRenderer bitmapFrameRenderer,
+      @Nullable BitmapFramePreparationStrategy bitmapFramePreparationStrategy,
+      @Nullable BitmapFramePreparer bitmapFramePreparer) {
     mPlatformBitmapFactory = platformBitmapFactory;
     mBitmapFrameCache = bitmapFrameCache;
     mAnimationInformation = animationInformation;
     mBitmapFrameRenderer = bitmapFrameRenderer;
+    mBitmapFramePreparationStrategy = bitmapFramePreparationStrategy;
+    mBitmapFramePreparer = bitmapFramePreparer;
 
     mPaint = new Paint(Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
     updateBitmapDimensions();
@@ -151,39 +162,80 @@ public class BitmapAnimationBackend implements AnimationBackend,
       mFrameListener.onDrawFrameStart(this, frameNumber);
     }
 
-    // Draw a cached frame
-    CloseableReference<Bitmap> bitmap = mBitmapFrameCache.getCachedFrame(frameNumber);
-    if (drawBitmapNotifyAndClose(frameNumber, bitmap, canvas, FRAME_TYPE_CACHED)) {
-      return true;
-    }
-
-    // Try and reuse a bitmap
-    bitmap = mBitmapFrameCache.getBitmapToReuseForFrame(frameNumber, mBitmapWidth, mBitmapHeight);
-    // Try to render the frame and draw on the canvas immediately after
-    if (renderFrameInBitmap(frameNumber, bitmap) &&
-        drawBitmapNotifyAndClose(frameNumber, bitmap, canvas, FRAME_TYPE_REUSED)) {
-      return true;
-    }
-
-    // Create a new bitmap
-    bitmap = mPlatformBitmapFactory.createBitmap(mBitmapWidth, mBitmapHeight, mBitmapConfig);
-    // Try to render the frame and draw on the canvas immediately after
-    if (renderFrameInBitmap(frameNumber, bitmap) &&
-        drawBitmapNotifyAndClose(frameNumber, bitmap, canvas, FRAME_TYPE_CREATED)) {
-      return true;
-    }
-
-    // Draw a fallback frame if possible
-    bitmap = mBitmapFrameCache.getFallbackFrame(frameNumber);
-    if (drawBitmapNotifyAndClose(frameNumber, bitmap, canvas, FRAME_TYPE_FALLBACK)) {
-      return true;
-    }
+    boolean drawn = drawFrameOrFallback(canvas, frameNumber, FRAME_TYPE_CACHED);
 
     // We could not draw anything
-    if (mFrameListener != null) {
+    if (!drawn && mFrameListener != null) {
       mFrameListener.onFrameDropped(this, frameNumber);
     }
-    return false;
+
+    // Prepare next frames
+    if (mBitmapFramePreparationStrategy != null && mBitmapFramePreparer != null) {
+      mBitmapFramePreparationStrategy.prepareFrames(
+          mBitmapFramePreparer,
+          mBitmapFrameCache,
+          this,
+          frameNumber);
+    }
+
+    return drawn;
+  }
+
+  private boolean drawFrameOrFallback(Canvas canvas, int frameNumber, @FrameType int frameType) {
+    CloseableReference<Bitmap> bitmapReference = null;
+    boolean drawn = false;
+    int nextFrameType = FRAME_TYPE_UNKNOWN;
+
+    try {
+      switch (frameType) {
+        case FRAME_TYPE_CACHED:
+          bitmapReference = mBitmapFrameCache.getCachedFrame(frameNumber);
+          drawn = drawBitmapAndCache(frameNumber, bitmapReference, canvas, FRAME_TYPE_CACHED);
+          nextFrameType = FRAME_TYPE_REUSED;
+          break;
+
+        case FRAME_TYPE_REUSED:
+          bitmapReference =
+              mBitmapFrameCache.getBitmapToReuseForFrame(frameNumber, mBitmapWidth, mBitmapHeight);
+          // Try to render the frame and draw on the canvas immediately after
+          drawn = renderFrameInBitmap(frameNumber, bitmapReference) &&
+              drawBitmapAndCache(frameNumber, bitmapReference, canvas, FRAME_TYPE_REUSED);
+          nextFrameType = FRAME_TYPE_CREATED;
+          break;
+
+        case FRAME_TYPE_CREATED:
+          try {
+            bitmapReference =
+                mPlatformBitmapFactory.createBitmap(mBitmapWidth, mBitmapHeight, mBitmapConfig);
+          } catch (RuntimeException e) {
+            // Failed to create the bitmap for the frame, return and report that we could not
+            // draw the frame.
+            FLog.w(TAG, "Failed to create frame bitmap", e);
+            return false;
+          }
+          // Try to render the frame and draw on the canvas immediately after
+          drawn = renderFrameInBitmap(frameNumber, bitmapReference) &&
+              drawBitmapAndCache(frameNumber, bitmapReference, canvas, FRAME_TYPE_CREATED);
+          nextFrameType = FRAME_TYPE_FALLBACK;
+          break;
+
+        case FRAME_TYPE_FALLBACK:
+          bitmapReference = mBitmapFrameCache.getFallbackFrame(frameNumber);
+          drawn = drawBitmapAndCache(frameNumber, bitmapReference, canvas, FRAME_TYPE_FALLBACK);
+          break;
+
+        default:
+          return false;
+      }
+    } finally {
+      CloseableReference.closeSafely(bitmapReference);
+    }
+
+    if (drawn || nextFrameType == FRAME_TYPE_UNKNOWN) {
+      return drawn;
+    } else {
+      return drawFrameOrFallback(canvas, frameNumber, nextFrameType);
+    }
   }
 
   @Override
@@ -266,8 +318,7 @@ public class BitmapAnimationBackend implements AnimationBackend,
   }
 
   /**
-   * Helper method that draws the given bitmap on the canvas respecting the bounds (if set). It will
-   * automatically close the given bitmap reference.
+   * Helper method that draws the given bitmap on the canvas respecting the bounds (if set).
    *
    * If rendering was successful, it notifies the cache that the frame has been rendered with the
    * given bitmap. In addition, it will notify the {@link FrameListener} if set.
@@ -278,7 +329,7 @@ public class BitmapAnimationBackend implements AnimationBackend,
    * @param frameType the {@link FrameType} to be rendered
    * @return true if the bitmap has been drawn
    */
-  private boolean drawBitmapNotifyAndClose(
+  private boolean drawBitmapAndCache(
       int frameNumber,
       @Nullable CloseableReference<Bitmap> bitmapReference,
       Canvas canvas,
@@ -286,20 +337,21 @@ public class BitmapAnimationBackend implements AnimationBackend,
     if (!CloseableReference.isValid(bitmapReference)) {
       return false;
     }
-    try {
-      if (mBounds == null) {
-        canvas.drawBitmap(bitmapReference.get(), 0f, 0f, mPaint);
-      } else {
-        canvas.drawBitmap(bitmapReference.get(), null, mBounds, mPaint);
-      }
-      // The callee has to clone the reference if it needs to hold on to the bitmap
+    if (mBounds == null) {
+      canvas.drawBitmap(bitmapReference.get(), 0f, 0f, mPaint);
+    } else {
+      canvas.drawBitmap(bitmapReference.get(), null, mBounds, mPaint);
+    }
+
+    // Notify the cache that a frame has been rendered.
+    // We should not cache fallback frames since they do not represent the actual frame.
+    if (frameType != FRAME_TYPE_FALLBACK) {
       mBitmapFrameCache.onFrameRendered(
           frameNumber,
           bitmapReference,
           frameType);
-    } finally {
-      CloseableReference.closeSafely(bitmapReference);
     }
+
     if (mFrameListener != null) {
       mFrameListener.onFrameDrawn(this, frameNumber, frameType);
     }

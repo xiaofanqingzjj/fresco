@@ -1,14 +1,10 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.facebook.fresco.animation.drawable;
-
-import javax.annotation.Nullable;
 
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -17,7 +13,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
-
 import com.facebook.common.logging.FLog;
 import com.facebook.drawable.base.DrawableWithCaches;
 import com.facebook.drawee.drawable.DrawableProperties;
@@ -25,6 +20,7 @@ import com.facebook.fresco.animation.backend.AnimationBackend;
 import com.facebook.fresco.animation.backend.AnimationInformation;
 import com.facebook.fresco.animation.frame.DropFramesFrameScheduler;
 import com.facebook.fresco.animation.frame.FrameScheduler;
+import javax.annotation.Nullable;
 
 /**
  * Experimental new animated drawable that uses a supplied
@@ -68,6 +64,8 @@ public class AnimatedDrawable2 extends Drawable implements Animatable, DrawableW
   private volatile boolean mIsRunning;
   private long mStartTimeMs;
   private long mLastFrameAnimationTimeMs;
+  private long mExpectedRenderTimeMs;
+  private int mLastDrawnFrameNumber;
 
   private long mFrameSchedulingDelayMs = DEFAULT_FRAME_SCHEDULING_DELAY_MS;
   private long mFrameSchedulingOffsetMs = DEFAULT_FRAME_SCHEDULING_OFFSET_MS;
@@ -136,7 +134,9 @@ public class AnimatedDrawable2 extends Drawable implements Animatable, DrawableW
     }
     mIsRunning = true;
     mStartTimeMs = now();
+    mExpectedRenderTimeMs = mStartTimeMs;
     mLastFrameAnimationTimeMs = -1;
+    mLastDrawnFrameNumber = -1;
     invalidateSelf();
     mAnimationListener.onAnimationStart(this);
   }
@@ -151,7 +151,9 @@ public class AnimatedDrawable2 extends Drawable implements Animatable, DrawableW
     }
     mIsRunning = false;
     mStartTimeMs = 0;
+    mExpectedRenderTimeMs = mStartTimeMs;
     mLastFrameAnimationTimeMs = -1;
+    mLastDrawnFrameNumber = -1;
     unscheduleSelf(mInvalidateRunnable);
     mAnimationListener.onAnimationStop(this);
   }
@@ -195,15 +197,19 @@ public class AnimatedDrawable2 extends Drawable implements Animatable, DrawableW
       mAnimationListener.onAnimationStop(this);
       mIsRunning = false;
     } else if (frameNumberToDraw == 0) {
-      mAnimationListener.onAnimationRepeat(this);
+      if (mLastDrawnFrameNumber != -1 && actualRenderTimeStartMs >= mExpectedRenderTimeMs) {
+        mAnimationListener.onAnimationRepeat(this);
+      }
     }
-
-    // Notify listeners that we're about to draw a new frame and
-    // that the animation might be repeated
-    mAnimationListener.onAnimationFrame(this, frameNumberToDraw);
 
     // Draw the frame
     boolean frameDrawn = mAnimationBackend.drawFrame(this, canvas, frameNumberToDraw);
+    if (frameDrawn) {
+      // Notify listeners that we draw a new frame and
+      // that the animation might be repeated
+      mAnimationListener.onAnimationFrame(this, frameNumberToDraw);
+      mLastDrawnFrameNumber = frameNumberToDraw;
+    }
 
     // Log potential dropped frames
     if (!frameDrawn) {
@@ -319,6 +325,7 @@ public class AnimatedDrawable2 extends Drawable implements Animatable, DrawableW
     // In order to jump to a given frame, we have to compute the correct start time
     mLastFrameAnimationTimeMs = mFrameScheduler.getTargetRenderTimeMs(targetFrameNumber);
     mStartTimeMs = now() - mLastFrameAnimationTimeMs;
+    mExpectedRenderTimeMs = mStartTimeMs;
     invalidateSelf();
   }
 
@@ -414,7 +421,8 @@ public class AnimatedDrawable2 extends Drawable implements Animatable, DrawableW
    * @param targetAnimationTimeMs the time in ms to update the frame
    */
   private void scheduleNextFrame(long targetAnimationTimeMs) {
-    scheduleSelf(mInvalidateRunnable, mStartTimeMs + targetAnimationTimeMs);
+    mExpectedRenderTimeMs = mStartTimeMs + targetAnimationTimeMs;
+    scheduleSelf(mInvalidateRunnable, mExpectedRenderTimeMs);
   }
 
   private void onFrameDropped() {

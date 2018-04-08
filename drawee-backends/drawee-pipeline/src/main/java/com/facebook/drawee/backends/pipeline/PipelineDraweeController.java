@@ -1,10 +1,8 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.backends.pipeline;
@@ -12,7 +10,7 @@ package com.facebook.drawee.backends.pipeline;
 import android.content.res.Resources;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-
+import android.media.ExifInterface;
 import com.facebook.cache.common.CacheKey;
 import com.facebook.common.internal.ImmutableList;
 import com.facebook.common.internal.Objects;
@@ -22,25 +20,28 @@ import com.facebook.common.logging.FLog;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.datasource.DataSource;
 import com.facebook.drawable.base.DrawableWithCaches;
+import com.facebook.drawee.backends.pipeline.info.ImageOrigin;
+import com.facebook.drawee.backends.pipeline.info.ImageOriginListener;
 import com.facebook.drawee.components.DeferredReleaser;
 import com.facebook.drawee.controller.AbstractDraweeController;
 import com.facebook.drawee.debug.DebugControllerOverlayDrawable;
+import com.facebook.drawee.debug.listener.ImageLoadingTimeControllerListener;
 import com.facebook.drawee.drawable.OrientedDrawable;
 import com.facebook.drawee.drawable.ScaleTypeDrawable;
 import com.facebook.drawee.drawable.ScalingUtils;
 import com.facebook.drawee.drawable.ScalingUtils.ScaleType;
+import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.interfaces.DraweeHierarchy;
 import com.facebook.drawee.interfaces.SettableDraweeHierarchy;
-import com.facebook.imagepipeline.animated.factory.AnimatedDrawableFactory;
 import com.facebook.imagepipeline.cache.MemoryCache;
+import com.facebook.imagepipeline.drawable.DrawableFactory;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.CloseableStaticBitmap;
 import com.facebook.imagepipeline.image.EncodedImage;
 import com.facebook.imagepipeline.image.ImageInfo;
-
 import java.util.concurrent.Executor;
-
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Drawee controller that bridges the image pipeline with {@link SettableDraweeHierarchy}. <p> The
@@ -54,9 +55,10 @@ public class PipelineDraweeController
 
   // Components
   private final Resources mResources;
-  private final AnimatedDrawableFactory mAnimatedDrawableFactory;
+  private final DrawableFactory mAnimatedDrawableFactory;
+  // Global drawable factories that are set when Fresco is initialized
   @Nullable
-  private final ImmutableList<DrawableFactory> mDrawableFactories;
+  private final ImmutableList<DrawableFactory> mGlobalDrawableFactories;
 
   private @Nullable MemoryCache<CacheKey, CloseableImage> mMemoryCache;
 
@@ -67,37 +69,63 @@ public class PipelineDraweeController
 
   private boolean mDrawDebugOverlay;
 
-  private final DrawableFactory mDefaultDrawableFactory = new DrawableFactory() {
+  // Drawable factories that are unique for a given image request
+  private @Nullable ImmutableList<DrawableFactory> mCustomDrawableFactories;
 
-    @Override
-    public boolean supportsImageType(CloseableImage image) {
-      return true;
-    }
+  @GuardedBy("this")
+  @Nullable
+  private ImageOriginListener mImageOriginListener;
 
-    @Override
-    public Drawable createDrawable(CloseableImage closeableImage) {
-      if (closeableImage instanceof CloseableStaticBitmap) {
-        CloseableStaticBitmap closeableStaticBitmap = (CloseableStaticBitmap) closeableImage;
-        Drawable bitmapDrawable = new BitmapDrawable(
-            mResources,
-            closeableStaticBitmap.getUnderlyingBitmap());
-        if (closeableStaticBitmap.getRotationAngle() == 0 ||
-            closeableStaticBitmap.getRotationAngle() == EncodedImage.UNKNOWN_ROTATION_ANGLE) {
-          return bitmapDrawable;
-        } else {
-          return new OrientedDrawable(bitmapDrawable, closeableStaticBitmap.getRotationAngle());
+  private final DrawableFactory mDefaultDrawableFactory =
+      new DrawableFactory() {
+
+        @Override
+        public boolean supportsImageType(CloseableImage image) {
+          return true;
         }
-      } else if (mAnimatedDrawableFactory != null) {
-        return mAnimatedDrawableFactory.create(closeableImage);
-      }
-      return null;
-    }
-  };
+
+        @Override
+        public Drawable createDrawable(CloseableImage closeableImage) {
+          if (closeableImage instanceof CloseableStaticBitmap) {
+            CloseableStaticBitmap closeableStaticBitmap = (CloseableStaticBitmap) closeableImage;
+            Drawable bitmapDrawable =
+                new BitmapDrawable(mResources, closeableStaticBitmap.getUnderlyingBitmap());
+            if (!hasTransformableRotationAngle(closeableStaticBitmap)
+                && !hasTransformableExifOrientation(closeableStaticBitmap)) {
+              // Return the bitmap drawable directly as there's nothing to transform in it
+              return bitmapDrawable;
+            } else {
+              return new OrientedDrawable(
+                  bitmapDrawable,
+                  closeableStaticBitmap.getRotationAngle(),
+                  closeableStaticBitmap.getExifOrientation());
+            }
+          } else if (mAnimatedDrawableFactory != null
+              && mAnimatedDrawableFactory.supportsImageType(closeableImage)) {
+            return mAnimatedDrawableFactory.createDrawable(closeableImage);
+          }
+          return null;
+        }
+      };
+
+  /* Returns true if there is anything to rotate using the rotation angle */
+  private static boolean hasTransformableRotationAngle(
+      CloseableStaticBitmap closeableStaticBitmap) {
+    return closeableStaticBitmap.getRotationAngle() != 0
+        && closeableStaticBitmap.getRotationAngle() != EncodedImage.UNKNOWN_ROTATION_ANGLE;
+  }
+
+  /* Returns true if there is anything to rotate using the EXIF orientation */
+  private static boolean hasTransformableExifOrientation(
+      CloseableStaticBitmap closeableStaticBitmap) {
+    return closeableStaticBitmap.getExifOrientation() != ExifInterface.ORIENTATION_NORMAL
+        && closeableStaticBitmap.getExifOrientation() != ExifInterface.ORIENTATION_UNDEFINED;
+  }
 
   public PipelineDraweeController(
           Resources resources,
           DeferredReleaser deferredReleaser,
-          AnimatedDrawableFactory animatedDrawableFactory,
+          DrawableFactory animatedDrawableFactory,
           Executor uiThreadExecutor,
           MemoryCache<CacheKey, CloseableImage> memoryCache,
           Supplier<DataSource<CloseableReference<CloseableImage>>> dataSourceSupplier,
@@ -120,20 +148,20 @@ public class PipelineDraweeController
   public PipelineDraweeController(
       Resources resources,
       DeferredReleaser deferredReleaser,
-      AnimatedDrawableFactory animatedDrawableFactory,
+      DrawableFactory animatedDrawableFactory,
       Executor uiThreadExecutor,
       MemoryCache<CacheKey, CloseableImage> memoryCache,
       Supplier<DataSource<CloseableReference<CloseableImage>>> dataSourceSupplier,
       String id,
       CacheKey cacheKey,
       Object callerContext,
-      @Nullable ImmutableList<DrawableFactory> drawableFactories) {
+      @Nullable ImmutableList<DrawableFactory> globalDrawableFactories) {
     super(deferredReleaser, uiThreadExecutor, id, callerContext);
     mResources = resources;
     mAnimatedDrawableFactory = animatedDrawableFactory;
     mMemoryCache = memoryCache;
     mCacheKey = cacheKey;
-    mDrawableFactories = drawableFactories;
+    mGlobalDrawableFactories = globalDrawableFactories;
     init(dataSourceSupplier);
   }
 
@@ -150,14 +178,29 @@ public class PipelineDraweeController
       Supplier<DataSource<CloseableReference<CloseableImage>>> dataSourceSupplier,
       String id,
       CacheKey cacheKey,
-      Object callerContext) {
+      Object callerContext,
+      @Nullable ImmutableList<DrawableFactory> customDrawableFactories,
+      ImageOriginListener imageOriginListener) {
     super.initialize(id, callerContext);
     init(dataSourceSupplier);
     mCacheKey = cacheKey;
+    setCustomDrawableFactories(customDrawableFactories);
+    setImageOriginListener(imageOriginListener);
   }
 
   public void setDrawDebugOverlay(boolean drawDebugOverlay) {
     mDrawDebugOverlay = drawDebugOverlay;
+  }
+
+  public void setCustomDrawableFactories(
+      @Nullable ImmutableList<DrawableFactory> customDrawableFactories) {
+    mCustomDrawableFactories = customDrawableFactories;
+  }
+
+  public void setImageOriginListener(@Nullable ImageOriginListener imageOriginListener) {
+    synchronized (this) {
+      mImageOriginListener = imageOriginListener;
+    }
   }
 
   private void init(Supplier<DataSource<CloseableReference<CloseableImage>>> dataSourceSupplier) {
@@ -168,6 +211,10 @@ public class PipelineDraweeController
 
   protected Resources getResources() {
     return mResources;
+  }
+
+  protected CacheKey getCacheKey() {
+    return mCacheKey;
   }
 
   @Override
@@ -185,22 +232,38 @@ public class PipelineDraweeController
 
     maybeUpdateDebugOverlay(closeableImage);
 
-    if (mDrawableFactories != null) {
-      for (DrawableFactory factory : mDrawableFactories) {
-        if (factory.supportsImageType(closeableImage)) {
-          Drawable drawable = factory.createDrawable(closeableImage);
-          if (drawable != null) {
-            return drawable;
-          }
+    Drawable drawable = maybeCreateDrawableFromFactories(mCustomDrawableFactories, closeableImage);
+    if (drawable != null) {
+      return drawable;
+    }
+
+    drawable = maybeCreateDrawableFromFactories(mGlobalDrawableFactories, closeableImage);
+    if (drawable != null) {
+      return drawable;
+    }
+
+    drawable = mDefaultDrawableFactory.createDrawable(closeableImage);
+    if (drawable != null) {
+      return drawable;
+    }
+    throw new UnsupportedOperationException("Unrecognized image class: " + closeableImage);
+  }
+
+  private Drawable maybeCreateDrawableFromFactories(
+      @Nullable ImmutableList<DrawableFactory> drawableFactories,
+      CloseableImage closeableImage) {
+    if (drawableFactories == null) {
+      return null;
+    }
+    for (DrawableFactory factory : drawableFactories) {
+      if (factory.supportsImageType(closeableImage)) {
+        Drawable drawable = factory.createDrawable(closeableImage);
+        if (drawable != null) {
+          return drawable;
         }
       }
     }
-
-    Drawable defaultDrawable = mDefaultDrawableFactory.createDrawable(closeableImage);
-    if (defaultDrawable != null) {
-      return defaultDrawable;
-    }
-    throw new UnsupportedOperationException("Unrecognized image class: " + closeableImage);
+    return null;
   }
 
   @Override
@@ -209,20 +272,30 @@ public class PipelineDraweeController
     maybeUpdateDebugOverlay(null);
   }
 
+  @Override
+  public boolean isSameImageRequest(@Nullable DraweeController other) {
+    if (other instanceof PipelineDraweeController) {
+      return Objects.equal(mCacheKey, ((PipelineDraweeController) other).getCacheKey());
+    }
+    return false;
+  }
+
   private void maybeUpdateDebugOverlay(@Nullable CloseableImage image) {
     if (!mDrawDebugOverlay) {
       return;
     }
-    Drawable controllerOverlay = getControllerOverlay();
 
-    if (controllerOverlay == null) {
-      controllerOverlay = new DebugControllerOverlayDrawable();
+    if (getControllerOverlay() == null) {
+      DebugControllerOverlayDrawable controllerOverlay = new DebugControllerOverlayDrawable();
+      ImageLoadingTimeControllerListener overlayImageLoadListener =
+          new ImageLoadingTimeControllerListener(controllerOverlay);
+      addControllerListener(overlayImageLoadListener);
       setControllerOverlay(controllerOverlay);
     }
 
-    if (controllerOverlay instanceof DebugControllerOverlayDrawable) {
+    if (getControllerOverlay() instanceof DebugControllerOverlayDrawable) {
       DebugControllerOverlayDrawable debugOverlay =
-          (DebugControllerOverlayDrawable) controllerOverlay;
+          (DebugControllerOverlayDrawable) getControllerOverlay();
       debugOverlay.setControllerId(getId());
 
       final DraweeHierarchy draweeHierarchy = getHierarchy();
@@ -233,7 +306,6 @@ public class PipelineDraweeController
         scaleType = scaleTypeDrawable != null ? scaleTypeDrawable.getScaleType() : null;
       }
       debugOverlay.setScaleType(scaleType);
-
       if (image != null) {
         debugOverlay.setDimensions(image.getWidth(), image.getHeight());
         debugOverlay.setImageSize(image.getSizeInBytes());
@@ -278,6 +350,17 @@ public class PipelineDraweeController
       return null;
     }
     return closeableImage;
+  }
+
+  @Override
+  protected void onImageLoadedFromCacheImmediately(
+      String id, CloseableReference<CloseableImage> cachedImage) {
+    super.onImageLoadedFromCacheImmediately(id, cachedImage);
+    synchronized (this) {
+      if (mImageOriginListener != null) {
+        mImageOriginListener.onImageLoaded(id, ImageOrigin.MEMORY_BITMAP, true);
+      }
+    }
   }
 
   @Override

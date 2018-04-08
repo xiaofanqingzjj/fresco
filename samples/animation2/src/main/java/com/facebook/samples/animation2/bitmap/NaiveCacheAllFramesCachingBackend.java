@@ -11,14 +11,13 @@
  */
 package com.facebook.samples.animation2.bitmap;
 
-import javax.annotation.Nullable;
-
 import android.graphics.Bitmap;
 import android.util.SparseArray;
-
 import com.facebook.common.references.CloseableReference;
+import com.facebook.fresco.animation.bitmap.BitmapAnimationBackend;
 import com.facebook.fresco.animation.bitmap.BitmapFrameCache;
 import com.facebook.imageutils.BitmapUtil;
+import javax.annotation.Nullable;
 
 /**
  * This naive implementation does not share Fresco's bitmap cache but has its own LRU.
@@ -56,6 +55,11 @@ public class NaiveCacheAllFramesCachingBackend implements BitmapFrameCache {
   }
 
   @Override
+  public synchronized boolean contains(int frameNumber) {
+    return CloseableReference.isValid(mBitmapSparseArray.get(frameNumber));
+  }
+
+  @Override
   public synchronized int getSizeInBytes() {
     int size = 0;
     for (int i = 0; i < mBitmapSparseArray.size(); i++) {
@@ -79,11 +83,18 @@ public class NaiveCacheAllFramesCachingBackend implements BitmapFrameCache {
   public synchronized void onFrameRendered(
       int frameNumber,
       CloseableReference<Bitmap> bitmapReference,
-      int frameType) {
+      @BitmapAnimationBackend.FrameType int frameType) {
       mBitmapSparseArray.put(frameNumber, CloseableReference.cloneOrNull(bitmapReference));
     if (mFrameCacheListener != null) {
       mFrameCacheListener.onFrameCached(this, frameNumber);
     }
+  }
+
+  @Override
+  public void onFramePrepared(
+      int frameNumber,
+      CloseableReference<Bitmap> bitmapReference,
+      @BitmapAnimationBackend.FrameType int frameType) {
   }
 
   @Override

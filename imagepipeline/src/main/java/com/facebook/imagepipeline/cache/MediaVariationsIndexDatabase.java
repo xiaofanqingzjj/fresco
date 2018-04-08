@@ -1,39 +1,36 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.cache;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
-
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
-
+import bolts.Task;
 import com.facebook.cache.common.CacheKey;
 import com.facebook.cache.common.CacheKeyUtil;
 import com.facebook.common.internal.VisibleForTesting;
 import com.facebook.common.logging.FLog;
+import com.facebook.common.time.Clock;
 import com.facebook.imagepipeline.image.EncodedImage;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.MediaVariations;
-
-import bolts.Task;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
 
@@ -46,20 +43,25 @@ public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
       IndexEntry.COLUMN_NAME_HEIGHT
   };
 
-  private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + IndexEntry.TABLE_NAME;
+  private static final String SQL_DROP_TABLE = "DROP TABLE IF EXISTS " + IndexEntry.TABLE_NAME;
+  private static final String WHERE_CLAUSE_DATE_BEFORE = IndexEntry.COLUMN_NAME_DATE + " < ?";
+  private static final long MILLIS_IN_ONE_DAY = TimeUnit.DAYS.toMillis(1);
+  private static final long MILLIS_IN_FIVE_DAYS = TimeUnit.DAYS.toMillis(5);
 
   @GuardedBy("MediaVariationsIndexDatabase.class")
   private final LazyIndexDbOpenHelper mDbHelper;
   private final Executor mReadExecutor;
   private final Executor mWriteExecutor;
+  private final Clock mClock;
+
+  private long mLastTrimTimestamp;
 
   public MediaVariationsIndexDatabase(
-      Context context,
-      Executor readExecutor,
-      Executor writeExecutor) {
+      Context context, Executor readExecutor, Executor writeExecutor, Clock clock) {
     mDbHelper = new LazyIndexDbOpenHelper(context);
     mReadExecutor = readExecutor;
     mWriteExecutor = writeExecutor;
+    mClock = clock;
   }
 
   @Override
@@ -155,6 +157,8 @@ public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
       final EncodedImage encodedImage) {
     synchronized (MediaVariationsIndexDatabase.class) {
       SQLiteDatabase db = mDbHelper.getWritableDatabase();
+      long now = mClock.now();
+
       try {
         db.beginTransaction();
 
@@ -166,14 +170,30 @@ public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
         contentValues.put(IndexEntry.COLUMN_NAME_CACHE_KEY, cacheKey.getUriString());
         contentValues
             .put(IndexEntry.COLUMN_NAME_RESOURCE_ID, CacheKeyUtil.getFirstResourceId(cacheKey));
+        contentValues.put(IndexEntry.COLUMN_NAME_DATE, now);
 
         db.replaceOrThrow(IndexEntry.TABLE_NAME, null, contentValues);
+
+        // Now remove old records from the table
+        if (mLastTrimTimestamp <= now - MILLIS_IN_ONE_DAY) {
+          db.delete(
+              IndexEntry.TABLE_NAME,
+              WHERE_CLAUSE_DATE_BEFORE,
+              new String[] {Long.toString(now - MILLIS_IN_FIVE_DAYS)});
+          mLastTrimTimestamp = now;
+        }
 
         db.setTransactionSuccessful();
       } catch (Exception x) {
         FLog.e(TAG, x, "Error writing for %s", mediaId);
       } finally {
-        db.endTransaction();
+        try {
+          db.endTransaction();
+        } catch (SQLiteException e) {
+          // Some devices (like the Advan S4Z) throws a SQLiteException when endTransaction()
+          // is called. Supposedly due to no disk space although this would be more likely to
+          // cause an exception during the insert.
+        }
       }
     }
   }
@@ -187,6 +207,7 @@ public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
     public static final String COLUMN_NAME_CACHE_CHOICE = "cache_choice";
     public static final String COLUMN_NAME_CACHE_KEY = "cache_key";
     public static final String COLUMN_NAME_RESOURCE_ID = "resource_id";
+    public static final String COLUMN_NAME_DATE = "date";
   }
 
   private static class LazyIndexDbOpenHelper {
@@ -208,7 +229,7 @@ public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
 
   private static class IndexDbOpenHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "FrescoMediaVariationsIndex.db";
     private static final String TEXT_TYPE = " TEXT";
     private static final String INTEGER_TYPE = " INTEGER";
@@ -220,7 +241,8 @@ public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
             IndexEntry.COLUMN_NAME_HEIGHT + INTEGER_TYPE + "," +
             IndexEntry.COLUMN_NAME_CACHE_CHOICE + TEXT_TYPE + "," +
             IndexEntry.COLUMN_NAME_CACHE_KEY + TEXT_TYPE + "," +
-            IndexEntry.COLUMN_NAME_RESOURCE_ID + TEXT_TYPE + " UNIQUE )";
+            IndexEntry.COLUMN_NAME_RESOURCE_ID + TEXT_TYPE + " UNIQUE," +
+            IndexEntry.COLUMN_NAME_DATE + INTEGER_TYPE + " )";
     private static final String SQL_CREATE_INDEX =
         "CREATE INDEX index_media_id ON " + IndexEntry.TABLE_NAME + " (" +
             IndexEntry.COLUMN_NAME_MEDIA_ID + ")";
@@ -245,7 +267,7 @@ public class MediaVariationsIndexDatabase implements MediaVariationsIndex {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       db.beginTransaction();
       try {
-        db.execSQL(SQL_DELETE_ENTRIES);
+        db.execSQL(SQL_DROP_TABLE);
         db.setTransactionSuccessful();
       } finally {
         db.endTransaction();

@@ -1,27 +1,24 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imageformat;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+
+import com.facebook.soloader.SoLoader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-import com.facebook.common.soloader.SoLoaderShim;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
 
 /**
  * Tests {@link ImageFormatChecker}
@@ -30,7 +27,7 @@ import static org.junit.Assert.assertSame;
 public class ImageFormatCheckerTest {
 
   static {
-    SoLoaderShim.setInTestMode();
+    SoLoader.setInTestMode();
   }
 
   @Test

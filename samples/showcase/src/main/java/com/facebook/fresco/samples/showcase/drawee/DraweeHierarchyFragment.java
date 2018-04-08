@@ -18,26 +18,22 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.drawable.ProgressBarDrawable;
 import com.facebook.drawee.drawable.ScalingUtils.ScaleType;
-import com.facebook.drawee.generic.GenericDraweeHierarchyBuilder;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.fresco.samples.showcase.BaseShowcaseFragment;
 import com.facebook.fresco.samples.showcase.R;
+import com.facebook.fresco.samples.showcase.misc.ImageUriProvider;
 
 /**
  * A {@link Fragment} that illustrates the different drawables one can set in a hierarchy.
  */
 public class DraweeHierarchyFragment extends BaseShowcaseFragment {
-  private static final Uri URI_SUCCESS =
-      Uri.parse("http://frescolib.org/static/sample-images/animal_a.png");
-  private static final Uri URI_FAIL =
-      Uri.parse("http://frescolib.org/static/sample-images/pancakes.png");
 
   public DraweeHierarchyFragment() {
     // Required empty public constructor
@@ -53,7 +49,14 @@ public class DraweeHierarchyFragment extends BaseShowcaseFragment {
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-    final SimpleDraweeView draweeView = (SimpleDraweeView) view.findViewById(R.id.drawee);
+    final ImageUriProvider imageUriProvider = ImageUriProvider.getInstance(getContext());
+    final Uri uriSuccess = imageUriProvider.createSampleUri(
+        ImageUriProvider.ImageSize.XL,
+        ImageUriProvider.UriModification.CACHE_BREAKER);
+    final Uri uriFailure = imageUriProvider.createNonExistingUri();
+
+    final SimpleDraweeView draweeView = view.findViewById(R.id.drawee);
+    final SwitchCompat retrySwitch = view.findViewById(R.id.retry_enabled);
 
     //noinspection deprecation
     final Drawable failureDrawable = getResources().getDrawable(R.drawable.ic_error_black_96dp);
@@ -71,14 +74,14 @@ public class DraweeHierarchyFragment extends BaseShowcaseFragment {
     view.findViewById(R.id.load_success).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        draweeView.setImageURI(URI_SUCCESS);
+        setUri(draweeView, uriSuccess, retrySwitch.isChecked());
       }
     });
 
     view.findViewById(R.id.load_fail).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        draweeView.setImageURI(URI_FAIL);
+        setUri(draweeView, uriFailure, retrySwitch.isChecked());
       }
     });
 
@@ -86,9 +89,17 @@ public class DraweeHierarchyFragment extends BaseShowcaseFragment {
       @Override
       public void onClick(View v) {
         draweeView.setController(null);
-        Fresco.getImagePipeline().evictFromCache(URI_SUCCESS);
+        Fresco.getImagePipeline().evictFromCache(uriSuccess);
       }
     });
+  }
+
+  private void setUri(SimpleDraweeView draweeView, Uri uri, boolean retryEnabled) {
+    draweeView.setController(Fresco.newDraweeControllerBuilder()
+        .setOldController(draweeView.getController())
+        .setTapToRetryEnabled(retryEnabled)
+        .setUri(uri)
+        .build());
   }
 
   @Override

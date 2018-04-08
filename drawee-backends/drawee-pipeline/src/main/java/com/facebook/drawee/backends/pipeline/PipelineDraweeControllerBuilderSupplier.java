@@ -1,27 +1,20 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.backends.pipeline;
 
 import android.content.Context;
-
 import com.facebook.common.executors.UiThreadImmediateExecutorService;
 import com.facebook.common.internal.Supplier;
 import com.facebook.drawee.components.DeferredReleaser;
 import com.facebook.drawee.controller.ControllerListener;
 import com.facebook.imagepipeline.core.ImagePipeline;
 import com.facebook.imagepipeline.core.ImagePipelineFactory;
-import com.facebook.imagepipeline.animated.factory.AnimatedDrawableFactory;
-import com.facebook.imagepipeline.animated.factory.AnimatedFactory;
-
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 public class PipelineDraweeControllerBuilderSupplier implements
@@ -57,11 +50,6 @@ public class PipelineDraweeControllerBuilderSupplier implements
     mContext = context;
     mImagePipeline = imagePipelineFactory.getImagePipeline();
 
-    final AnimatedFactory animatedFactory = imagePipelineFactory.getAnimatedFactory();
-    AnimatedDrawableFactory animatedDrawableFactory = null;
-    if (animatedFactory != null) {
-      animatedDrawableFactory = animatedFactory.getAnimatedDrawableFactory(context);
-    }
     if (draweeConfig != null && draweeConfig.getPipelineDraweeControllerFactory() != null) {
       mPipelineDraweeControllerFactory = draweeConfig.getPipelineDraweeControllerFactory();
     } else {
@@ -70,7 +58,7 @@ public class PipelineDraweeControllerBuilderSupplier implements
     mPipelineDraweeControllerFactory.init(
         context.getResources(),
         DeferredReleaser.getInstance(),
-        animatedDrawableFactory,
+        imagePipelineFactory.getAnimatedDrawableFactory(context),
         UiThreadImmediateExecutorService.getInstance(),
         mImagePipeline.getBitmapMemoryCache(),
         draweeConfig != null

@@ -1,22 +1,18 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.producers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 import bolts.Task;
-
 import com.facebook.cache.common.CacheKey;
 import com.facebook.cache.common.MultiCacheKey;
 import com.facebook.cache.common.SimpleCacheKey;
@@ -25,11 +21,14 @@ import com.facebook.common.memory.PooledByteBuffer;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.imagepipeline.cache.BufferedDiskCache;
 import com.facebook.imagepipeline.cache.CacheKeyFactory;
-import com.facebook.imagepipeline.cache.DiskCachePolicy;
 import com.facebook.imagepipeline.common.Priority;
 import com.facebook.imagepipeline.image.EncodedImage;
 import com.facebook.imagepipeline.request.ImageRequest;
-
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.*;
 import org.junit.runner.*;
 import org.mockito.*;
@@ -37,11 +36,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.robolectric.*;
 import org.robolectric.annotation.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 
 /**
  * Checks basic properties of disk cache producer operation, that is:
@@ -66,8 +60,10 @@ public class DiskCacheReadProducerTest {
   @Mock public ImageRequest mImageRequest;
   @Mock public Object mCallerContext;
   @Mock public ProducerListener mProducerListener;
-  @Mock public DiskCachePolicy mDiskCachePolicy;
   @Mock public Exception mException;
+  private final BufferedDiskCache mDefaultBufferedDiskCache = mock(BufferedDiskCache.class);
+  private final BufferedDiskCache mSmallImageBufferedDiskCache =
+      mock(BufferedDiskCache.class);
   private SettableProducerContext mProducerContext;
   private SettableProducerContext mLowestLevelProducerContext;
   private final String mRequestId = "mRequestId";
@@ -85,8 +81,12 @@ public class DiskCacheReadProducerTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
-    mDiskCacheReadProducer =
-        new DiskCacheReadProducer(mInputProducer, mDiskCachePolicy);
+    mDiskCacheReadProducer = new DiskCacheReadProducer(
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache,
+        mCacheKeyFactory,
+        mInputProducer
+    );
     List<CacheKey> keys = new ArrayList<>(1);
     keys.add(new SimpleCacheKey("http://dummy.uri"));
     mCacheKey = new MultiCacheKey(keys);
@@ -131,26 +131,28 @@ public class DiskCacheReadProducerTest {
         mConsumer,
         mProducerListener,
         mCacheKeyFactory,
-        mDiskCachePolicy);
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache);
   }
 
   @Test
   public void testNotEnabledAndLowestLevel() {
     when(mImageRequest.isDiskCacheEnabled()).thenReturn(false);
     mDiskCacheReadProducer.produceResults(mConsumer, mLowestLevelProducerContext);
-    verify(mConsumer).onNewResult(null, true);
+    verify(mConsumer).onNewResult(null, Consumer.IS_LAST);
     verifyNoMoreInteractions(
         mProducerListener,
         mInputProducer,
         mCacheKeyFactory,
-        mDiskCachePolicy);
+        mDefaultBufferedDiskCache,
+        mSmallImageBufferedDiskCache);
   }
 
   @Test
   public void testDefaultDiskCacheGetSuccessful() {
-    setupDiskCacheGetSuccess();
+    setupDiskCacheGetSuccess(mDefaultBufferedDiskCache);
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     ArgumentCaptor<HashMap> captor = ArgumentCaptor.forClass(HashMap.class);
     verify(mProducerListener).onProducerFinishWithSuccess(
@@ -167,9 +169,9 @@ public class DiskCacheReadProducerTest {
   @Test
   public void testSmallImageDiskCacheGetSuccessful() {
     when(mImageRequest.getCacheChoice()).thenReturn(ImageRequest.CacheChoice.SMALL);
-    setupDiskCacheGetSuccess();
+    setupDiskCacheGetSuccess(mSmallImageBufferedDiskCache);
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     ArgumentCaptor<HashMap> captor = ArgumentCaptor.forClass(HashMap.class);
     verify(mProducerListener).onProducerFinishWithSuccess(
@@ -185,10 +187,10 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetSuccessfulNoExtraMap() {
-    setupDiskCacheGetSuccess();
+    setupDiskCacheGetSuccess(mDefaultBufferedDiskCache);
     when(mProducerListener.requiresExtraMap(mRequestId)).thenReturn(false);
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     verify(mProducerListener).onProducerFinishWithSuccess(
         mRequestId, PRODUCER_NAME, null);
@@ -198,10 +200,10 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetSuccessfulLowestLevelReached() {
-    setupDiskCacheGetSuccess();
+    setupDiskCacheGetSuccess(mDefaultBufferedDiskCache);
     when(mProducerListener.requiresExtraMap(mRequestId)).thenReturn(false);
     mDiskCacheReadProducer.produceResults(mConsumer, mLowestLevelProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     verify(mProducerListener).onProducerFinishWithSuccess(
         mRequestId, PRODUCER_NAME, null);
@@ -211,10 +213,10 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetFailureInputProducerSuccess() {
-    setupDiskCacheGetFailure();
+    setupDiskCacheGetFailure(mDefaultBufferedDiskCache);
     setupInputProducerSuccess();
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerFinishWithFailure(
         mRequestId, PRODUCER_NAME, mException, null);
     verify(mProducerListener, never())
@@ -223,15 +225,15 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetFailureInputProducerNotFound() {
-    setupDiskCacheGetFailure();
+    setupDiskCacheGetFailure(mDefaultBufferedDiskCache);
     setupInputProducerNotFound();
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(null, true);
+    verify(mConsumer).onNewResult(null, Consumer.IS_LAST);
   }
 
   @Test
   public void testDiskCacheGetFailureInputProducerFailure() {
-    setupDiskCacheGetFailure();
+    setupDiskCacheGetFailure(mDefaultBufferedDiskCache);
     setupInputProducerFailure();
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
     verify(mConsumer).onFailure(mException);
@@ -244,7 +246,7 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetFailureLowestLevelReached() {
-    setupDiskCacheGetFailure();
+    setupDiskCacheGetFailure(mDefaultBufferedDiskCache);
     mDiskCacheReadProducer.produceResults(mConsumer, mLowestLevelProducerContext);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     verify(mProducerListener).onProducerFinishWithFailure(
@@ -256,11 +258,11 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDefaultDiskCacheGetNotFoundInputProducerSuccess() {
-    setupDiskCacheGetNotFound();
+    setupDiskCacheGetNotFound(mDefaultBufferedDiskCache);
     setupInputProducerSuccess();
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
     verify(mInputProducer).produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     ArgumentCaptor<HashMap> captor = ArgumentCaptor.forClass(HashMap.class);
     verify(mProducerListener).onProducerFinishWithSuccess(
@@ -275,10 +277,10 @@ public class DiskCacheReadProducerTest {
   @Test
   public void testSmallImageDiskCacheGetNotFoundInputProducerSuccess() {
     when(mImageRequest.getCacheChoice()).thenReturn(ImageRequest.CacheChoice.SMALL);
-    setupDiskCacheGetNotFound();
+    setupDiskCacheGetNotFound(mSmallImageBufferedDiskCache);
     setupInputProducerSuccess();
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     ArgumentCaptor<HashMap> captor = ArgumentCaptor.forClass(HashMap.class);
     verify(mProducerListener).onProducerFinishWithSuccess(
@@ -292,12 +294,12 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetNotFoundInputProducerSuccessNoExtraMap() {
-    setupDiskCacheGetNotFound();
+    setupDiskCacheGetNotFound(mDefaultBufferedDiskCache);
     setupInputProducerSuccess();
     when(mProducerListener.requiresExtraMap(mRequestId)).thenReturn(false);
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
     verify(mInputProducer).produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(mFinalEncodedImage, true);
+    verify(mConsumer).onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     verify(mProducerListener).onProducerFinishWithSuccess(
         mRequestId, PRODUCER_NAME, null);
@@ -307,15 +309,15 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetNotFoundInputProducerNotFound() {
-    setupDiskCacheGetNotFound();
+    setupDiskCacheGetNotFound(mDefaultBufferedDiskCache);
     setupInputProducerNotFound();
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
-    verify(mConsumer).onNewResult(null, true);
+    verify(mConsumer).onNewResult(null, Consumer.IS_LAST);
   }
 
   @Test
   public void testDiskCacheGetNotFoundInputProducerFailure() {
-    setupDiskCacheGetNotFound();
+    setupDiskCacheGetNotFound(mDefaultBufferedDiskCache);
     setupInputProducerFailure();
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
     verify(mConsumer).onFailure(mException);
@@ -332,7 +334,7 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetNotFoundLowestLevelReached() {
-    setupDiskCacheGetNotFound();
+    setupDiskCacheGetNotFound(mDefaultBufferedDiskCache);
     when(mProducerListener.requiresExtraMap(mRequestId)).thenReturn(false);
     mDiskCacheReadProducer.produceResults(mConsumer, mLowestLevelProducerContext);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
@@ -363,7 +365,7 @@ public class DiskCacheReadProducerTest {
 
   @Test
   public void testDiskCacheGetCancelled() {
-    setupDiskCacheGetWait();
+    setupDiskCacheGetWait(mDefaultBufferedDiskCache);
     mDiskCacheReadProducer.produceResults(mConsumer, mProducerContext);
     verify(mConsumer, never()).onCancellation();
     assertFalse(mIsCancelled.getValue().get());
@@ -387,28 +389,24 @@ public class DiskCacheReadProducerTest {
         .onUltimateProducerReached(anyString(), anyString(), anyBoolean());
   }
 
-  private void setupDiskCacheGetWait() {
+  private void setupDiskCacheGetWait(BufferedDiskCache bufferedDiskCache) {
     mTaskCompletionSource = Task.create();
-    when(mDiskCachePolicy
-        .createAndStartCacheReadTask(eq(mImageRequest), eq(mCallerContext), mIsCancelled.capture()))
+    when(bufferedDiskCache.get(eq(mCacheKey), mIsCancelled.capture()))
         .thenReturn(mTaskCompletionSource.getTask());
   }
 
-  private void setupDiskCacheGetSuccess() {
-    when(mDiskCachePolicy
-        .createAndStartCacheReadTask(eq(mImageRequest), eq(mCallerContext), mIsCancelled.capture()))
+  private void setupDiskCacheGetSuccess(BufferedDiskCache bufferedDiskCache) {
+    when(bufferedDiskCache.get(eq(mCacheKey), any(AtomicBoolean.class)))
         .thenReturn(Task.forResult(mFinalEncodedImage));
   }
 
-  private void setupDiskCacheGetNotFound() {
-    when(mDiskCachePolicy
-        .createAndStartCacheReadTask(eq(mImageRequest), eq(mCallerContext), mIsCancelled.capture()))
+  private void setupDiskCacheGetNotFound(BufferedDiskCache bufferedDiskCache) {
+    when(bufferedDiskCache.get(eq(mCacheKey), any(AtomicBoolean.class)))
         .thenReturn(Task.<EncodedImage>forResult(null));
   }
 
-  private void setupDiskCacheGetFailure() {
-    when(mDiskCachePolicy
-        .createAndStartCacheReadTask(eq(mImageRequest), eq(mCallerContext), mIsCancelled.capture()))
+  private void setupDiskCacheGetFailure(BufferedDiskCache bufferedDiskCache) {
+    when(bufferedDiskCache.get(eq(mCacheKey), any(AtomicBoolean.class)))
         .thenReturn(Task.<EncodedImage>forError(mException));
   }
 
@@ -418,8 +416,8 @@ public class DiskCacheReadProducerTest {
           @Override
           public Object answer(InvocationOnMock invocation) throws Throwable {
             Consumer consumer = (Consumer) invocation.getArguments()[0];
-            consumer.onNewResult(mIntermediateEncodedImage, false);
-            consumer.onNewResult(mFinalEncodedImage, true);
+            consumer.onNewResult(mIntermediateEncodedImage, Consumer.NO_FLAGS);
+            consumer.onNewResult(mFinalEncodedImage, Consumer.IS_LAST);
             return null;
           }
         }).when(mInputProducer).produceResults(any(Consumer.class), eq(mProducerContext));
@@ -443,7 +441,7 @@ public class DiskCacheReadProducerTest {
           @Override
           public Object answer(InvocationOnMock invocation) throws Throwable {
             Consumer consumer = (Consumer) invocation.getArguments()[0];
-            consumer.onNewResult(null, true);
+            consumer.onNewResult(null, Consumer.IS_LAST);
             return null;
           }
         }).when(mInputProducer).produceResults(any(Consumer.class), eq(mProducerContext));

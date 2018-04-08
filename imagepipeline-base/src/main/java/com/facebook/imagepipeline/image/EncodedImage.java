@@ -1,25 +1,14 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.image;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-
-import java.io.Closeable;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
+import android.media.ExifInterface;
 import android.util.Pair;
-
-import com.facebook.cache.common.CacheKey;
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.internal.Supplier;
 import com.facebook.common.internal.VisibleForTesting;
@@ -30,9 +19,16 @@ import com.facebook.common.references.SharedReference;
 import com.facebook.imageformat.DefaultImageFormats;
 import com.facebook.imageformat.ImageFormat;
 import com.facebook.imageformat.ImageFormatChecker;
+import com.facebook.imagepipeline.common.BytesRange;
 import com.facebook.imageutils.BitmapUtil;
 import com.facebook.imageutils.JfifUtil;
 import com.facebook.imageutils.WebpUtil;
+import java.io.Closeable;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * Class that contains all the information for an encoded image, both the image bytes (held on
@@ -62,11 +58,12 @@ public class EncodedImage implements Closeable {
 
   private ImageFormat mImageFormat = ImageFormat.UNKNOWN;
   private int mRotationAngle = UNKNOWN_ROTATION_ANGLE;
+  private int mExifOrientation = ExifInterface.ORIENTATION_UNDEFINED;
   private int mWidth = UNKNOWN_WIDTH;
   private int mHeight = UNKNOWN_HEIGHT;
   private int mSampleSize = DEFAULT_SAMPLE_SIZE;
   private int mStreamSize = UNKNOWN_STREAM_SIZE;
-  private @Nullable CacheKey mEncodedCacheKey;
+  private @Nullable BytesRange mBytesRange;
 
   public EncodedImage(CloseableReference<PooledByteBuffer> pooledByteBufferRef) {
     Preconditions.checkArgument(CloseableReference.isValid(pooledByteBufferRef));
@@ -189,9 +186,12 @@ public class EncodedImage implements Closeable {
     this.mRotationAngle = rotationAngle;
   }
 
-  /**
-   * Sets the image sample size
-   */
+  /** Sets the exif orientation */
+  public void setExifOrientation(int exifOrientation) {
+    this.mExifOrientation = exifOrientation;
+  }
+
+  /** Sets the image sample size */
   public void setSampleSize(int sampleSize) {
     this.mSampleSize = sampleSize;
   }
@@ -205,12 +205,8 @@ public class EncodedImage implements Closeable {
     this.mStreamSize = streamSize;
   }
 
-  /**
-   * Sets the key related to this image for encoded caches
-   * @param encodedCacheKey
-   */
-  public void setEncodedCacheKey(@Nullable CacheKey encodedCacheKey) {
-    mEncodedCacheKey = encodedCacheKey;
+  public void setBytesRange(@Nullable BytesRange bytesRange) {
+    mBytesRange = bytesRange;
   }
 
   /**
@@ -230,16 +226,19 @@ public class EncodedImage implements Closeable {
   }
 
   /**
-   * Only valid if the image format is JPEG.
-   * @return width if the width is known, else -1.
+   * Only valid if the image format is JPEG. Returns the exif orientation if known (1 - 8), else 0.
    */
+  public int getExifOrientation() {
+    return mExifOrientation;
+  }
+
+  /** Returns the image width if known, else -1. */
   public int getWidth() {
     return mWidth;
   }
 
   /**
-   * Only valid if the image format is JPEG.
-   * @return height if the height is known, else -1.
+   * Returns the image height if known, else -1.
    */
   public int getHeight() {
     return mHeight;
@@ -253,13 +252,9 @@ public class EncodedImage implements Closeable {
     return mSampleSize;
   }
 
-  /**
-   * Gets the key to use when storing this image in encoded caches
-   * @return the encoded cache key
-   */
   @Nullable
-  public CacheKey getEncodedCacheKey() {
-    return mEncodedCacheKey;
+  public BytesRange getBytesRange() {
+    return mBytesRange;
   }
 
   /**
@@ -295,8 +290,35 @@ public class EncodedImage implements Closeable {
   }
 
   /**
-   * Sets the encoded image meta data.
+   * Returns first n bytes of encoded image as hexbytes
+   *
+   * @param length the number of bytes to return
    */
+  public String getFirstBytesAsHexString(int length) {
+    CloseableReference<PooledByteBuffer> imageBuffer = getByteBufferRef();
+    if (imageBuffer == null) {
+      return "";
+    }
+    int imageSize = getSize();
+    int resultSampleSize = Math.min(imageSize, length);
+    byte[] bytesBuffer = new byte[resultSampleSize];
+    try {
+      PooledByteBuffer pooledByteBuffer = imageBuffer.get();
+      if (pooledByteBuffer == null) {
+        return "";
+      }
+      pooledByteBuffer.read(0, bytesBuffer, 0, resultSampleSize);
+    } finally {
+      imageBuffer.close();
+    }
+    StringBuilder stringBuilder = new StringBuilder(bytesBuffer.length * 2);
+    for (byte b : bytesBuffer) {
+      stringBuilder.append(String.format("%02X", b));
+    }
+    return stringBuilder.toString();
+  }
+
+  /** Sets the encoded image meta data. */
   public void parseMetaData() {
     final ImageFormat imageFormat = ImageFormatChecker.getImageFormat_WrapIOException(
         getInputStream());
@@ -312,8 +334,8 @@ public class EncodedImage implements Closeable {
     if (imageFormat == DefaultImageFormats.JPEG && mRotationAngle == UNKNOWN_ROTATION_ANGLE) {
       // Load the JPEG rotation angle only if we have the dimensions
       if (dimensions != null) {
-        mRotationAngle = JfifUtil.getAutoRotateAngleFromOrientation(
-            JfifUtil.getOrientation(getInputStream()));
+        mExifOrientation = JfifUtil.getOrientation(getInputStream());
+        mRotationAngle = JfifUtil.getAutoRotateAngleFromOrientation(mExifOrientation);
       }
     } else {
       mRotationAngle = 0;
@@ -367,9 +389,10 @@ public class EncodedImage implements Closeable {
     mWidth = encodedImage.getWidth();
     mHeight = encodedImage.getHeight();
     mRotationAngle = encodedImage.getRotationAngle();
+    mExifOrientation = encodedImage.getExifOrientation();
     mSampleSize = encodedImage.getSampleSize();
     mStreamSize = encodedImage.getSize();
-    mEncodedCacheKey = encodedImage.getEncodedCacheKey();
+    mBytesRange = encodedImage.getBytesRange();
   }
 
   /**

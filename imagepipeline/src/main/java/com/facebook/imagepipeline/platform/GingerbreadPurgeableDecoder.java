@@ -1,20 +1,17 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.platform;
 
-import javax.annotation.Nullable;
+import static com.facebook.common.webp.WebpSupportStatus.sWebpBitmapFactory;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.MemoryFile;
-
 import com.facebook.common.internal.ByteStreams;
 import com.facebook.common.internal.Closeables;
 import com.facebook.common.internal.Preconditions;
@@ -23,13 +20,11 @@ import com.facebook.common.memory.PooledByteBuffer;
 import com.facebook.common.memory.PooledByteBufferInputStream;
 import com.facebook.common.references.CloseableReference;
 import com.facebook.common.streams.LimitedInputStream;
-
-import static com.facebook.common.webp.WebpSupportStatus.sWebpBitmapFactory;
-
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import javax.annotation.Nullable;
 
 /**
  * Bitmap decoder (Gingerbread to Jelly Bean).

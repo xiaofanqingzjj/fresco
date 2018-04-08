@@ -1,44 +1,36 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.generic;
 
-import java.util.Arrays;
+import static com.facebook.drawee.drawable.ScalingUtils.ScaleType;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
-
 import com.facebook.drawee.drawable.AndroidGraphicsTestUtils;
 import com.facebook.drawee.drawable.DrawableTestUtils;
 import com.facebook.drawee.drawable.FadeDrawable;
 import com.facebook.drawee.drawable.ForwardingDrawable;
-import com.facebook.drawee.drawable.MatrixDrawable;
 import com.facebook.drawee.drawable.Rounded;
 import com.facebook.drawee.drawable.RoundedBitmapDrawable;
 import com.facebook.drawee.drawable.RoundedCornersDrawable;
 import com.facebook.drawee.drawable.ScaleTypeDrawable;
-
-import org.robolectric.RobolectricTestRunner;
-
+import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.facebook.drawee.drawable.ScalingUtils.ScaleType;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
 public class GenericDraweeHierarchyTest {
@@ -56,7 +48,6 @@ public class GenericDraweeHierarchyTest {
   private BitmapDrawable mActualImage2;
   private ColorDrawable mWrappedLeaf;
   private ForwardingDrawable mWrappedImage;
-  private Matrix mActualImageMatrix;
   private PointF mFocusPoint;
 
   @Before
@@ -74,7 +65,6 @@ public class GenericDraweeHierarchyTest {
     mActualImage2 = DrawableTestUtils.mockBitmapDrawable();
     mWrappedLeaf = new ColorDrawable(Color.BLUE);
     mWrappedImage = new ForwardingDrawable(new ForwardingDrawable(mWrappedLeaf));
-    mActualImageMatrix = mock(Matrix.class);
     mFocusPoint = new PointF(0.1f, 0.4f);
   }
 
@@ -98,31 +88,6 @@ public class GenericDraweeHierarchyTest {
     assertScaleTypeAndDrawable(mRetryImage, ScaleType.FIT_CENTER, fadeDrawable.getDrawable(4));
     assertScaleTypeAndDrawable(mFailureImage, ScaleType.CENTER_INSIDE, fadeDrawable.getDrawable(5));
     assertNull(fadeDrawable.getDrawable(6));
-    verifyCallback(rootDrawable, mPlaceholderImage);
-  }
-
-  @Test
-  public void testHierarchy_WithMatrix() throws Exception {
-    GenericDraweeHierarchy dh = mBuilder
-        .setPlaceholderImage(mPlaceholderImage, null)
-        .setRetryImage(mRetryImage, null)
-        .setFailureImage(mFailureImage, null)
-        .setProgressBarImage(mProgressBarImage, null)
-        .setActualImageMatrix(mActualImageMatrix)
-        .build();
-    RootDrawable rootDrawable = (RootDrawable) dh.getTopLevelDrawable();
-    FadeDrawable fadeDrawable = (FadeDrawable) rootDrawable.getCurrent();
-    assertEquals(7, fadeDrawable.getNumberOfLayers());
-    assertNull(fadeDrawable.getDrawable(0));
-    assertSame(mPlaceholderImage, fadeDrawable.getDrawable(1));
-    assertSame(mProgressBarImage, fadeDrawable.getDrawable(3));
-    assertSame(mRetryImage, fadeDrawable.getDrawable(4));
-    assertSame(mFailureImage, fadeDrawable.getDrawable(5));
-    assertNull(fadeDrawable.getDrawable(6));
-    MatrixDrawable matrixDrawable = (MatrixDrawable) fadeDrawable.getDrawable(2);
-    assertNotNull(matrixDrawable);
-    assertEquals(mActualImageMatrix, matrixDrawable.getMatrix());
-    assertSame(ForwardingDrawable.class, matrixDrawable.getCurrent().getClass());
     verifyCallback(rootDrawable, mPlaceholderImage);
   }
 

@@ -1,37 +1,11 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.core;
-
-import android.net.Uri;
-
-import com.facebook.common.media.MediaUtils;
-import com.facebook.common.memory.PooledByteBuffer;
-import com.facebook.common.references.CloseableReference;
-import com.facebook.common.util.UriUtil;
-import com.facebook.imagepipeline.image.CloseableImage;
-import com.facebook.imagepipeline.producers.Producer;
-import com.facebook.imagepipeline.request.ImageRequest;
-import com.facebook.imagepipeline.request.Postprocessor;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.rule.PowerMockRule;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import static com.facebook.imagepipeline.common.SourceUriType.SOURCE_TYPE_LOCAL_ASSET;
 import static com.facebook.imagepipeline.common.SourceUriType.SOURCE_TYPE_LOCAL_CONTENT;
@@ -45,6 +19,29 @@ import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.RETURNS_MOCKS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import android.net.Uri;
+import com.facebook.common.media.MediaUtils;
+import com.facebook.common.memory.PooledByteBuffer;
+import com.facebook.common.references.CloseableReference;
+import com.facebook.common.util.UriUtil;
+import com.facebook.imagepipeline.image.CloseableImage;
+import com.facebook.imagepipeline.producers.Producer;
+import com.facebook.imagepipeline.request.ImageRequest;
+import com.facebook.imagepipeline.request.Postprocessor;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.rule.PowerMockRule;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
 
 /**
  * Tests {@link ProducerSequenceFactory}.
@@ -71,8 +68,16 @@ public class ProducerSequenceFactoryTest {
 
     ProducerFactory producerFactory = mock(ProducerFactory.class, RETURNS_MOCKS);
 
-    mProducerSequenceFactory =
-        new ProducerSequenceFactory(producerFactory, null, true, false, null, false);
+    mProducerSequenceFactory = new ProducerSequenceFactory(
+        RuntimeEnvironment.application.getContentResolver(),
+        producerFactory,
+        null,
+        true,
+        false,
+        null,
+        false,
+        false,
+        false);
 
     when(mImageRequest.getLowestPermittedRequestLevel())
         .thenReturn(ImageRequest.RequestLevel.FULL_FETCH);
@@ -285,5 +290,47 @@ public class ProducerSequenceFactoryTest {
     assertNull(
         mProducerSequenceFactory.mPostprocessorSequences.get(
             mProducerSequenceFactory.mBackgroundNetworkFetchToEncodedMemorySequence));
+  }
+
+  @Test
+  public void testPrepareBitmapFactoryDefault() {
+    internalUseSequenceFactoryWithBitmapPrepare();
+
+    PowerMockito.when(mImageRequest.getSourceUriType()).thenReturn(SOURCE_TYPE_NETWORK);
+
+    Producer producer = mProducerSequenceFactory.getDecodedImageProducerSequence(mImageRequest);
+    assertSame(
+        producer,
+        mProducerSequenceFactory.mBitmapPrepareSequences.get(
+            mProducerSequenceFactory.mNetworkFetchSequence));
+  }
+
+  @Test
+  public void testPrepareBitmapFactoryWithPostprocessor() {
+    internalUseSequenceFactoryWithBitmapPrepare();
+
+    PowerMockito.when(mImageRequest.getSourceUriType()).thenReturn(SOURCE_TYPE_NETWORK);
+    when(mImageRequest.getPostprocessor()).thenReturn(mPostprocessor);
+
+    Producer producer = mProducerSequenceFactory.getDecodedImageProducerSequence(mImageRequest);
+    assertSame(
+        producer,
+        mProducerSequenceFactory.mBitmapPrepareSequences.get(
+            mProducerSequenceFactory.mPostprocessorSequences
+                .get(mProducerSequenceFactory.mNetworkFetchSequence)));
+  }
+
+  private void internalUseSequenceFactoryWithBitmapPrepare() {
+    ProducerFactory producerFactory = mock(ProducerFactory.class, RETURNS_MOCKS);
+    mProducerSequenceFactory = new ProducerSequenceFactory(
+        RuntimeEnvironment.application.getContentResolver(),
+        producerFactory,
+        null,
+        true,
+        false,
+        null,
+        false,
+        /* useBitmapPrepareToDraw */ true,
+        false);
   }
 }

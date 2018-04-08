@@ -1,23 +1,17 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.controller;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-
-import java.util.concurrent.Executor;
+import static com.facebook.drawee.components.DraweeEventTracker.Event;
 
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.view.MotionEvent;
-
 import com.facebook.common.internal.Objects;
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.logging.FLog;
@@ -31,8 +25,10 @@ import com.facebook.drawee.gestures.GestureDetector;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.interfaces.DraweeHierarchy;
 import com.facebook.drawee.interfaces.SettableDraweeHierarchy;
-
-import static com.facebook.drawee.components.DraweeEventTracker.Event;
+import com.facebook.infer.annotation.ReturnsOwnership;
+import java.util.concurrent.Executor;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Abstract Drawee controller that implements common functionality
@@ -55,8 +51,7 @@ public abstract class AbstractDraweeController<T, INFO> implements
    */
   private static class InternalForwardingListener<INFO> extends ForwardingControllerListener<INFO> {
     public static <INFO> InternalForwardingListener<INFO> createInternal(
-        ControllerListener<? super INFO> listener1,
-        ControllerListener<? super INFO> listener2) {
+        ControllerListener<? super INFO> listener1, ControllerListener<? super INFO> listener2) {
       InternalForwardingListener<INFO> forwarder = new InternalForwardingListener<INFO>();
       forwarder.addListener(listener1);
       forwarder.addListener(listener2);
@@ -208,13 +203,11 @@ public abstract class AbstractDraweeController<T, INFO> implements
   }
 
   /** Gets retry manager. */
-  protected @Nullable RetryManager getRetryManager() {
+  @ReturnsOwnership protected RetryManager getRetryManager() {
+    if (mRetryManager == null) {
+      mRetryManager = new RetryManager();
+    }
     return mRetryManager;
-  }
-
-  /** Sets retry manager. */
-  protected void setRetryManager(@Nullable RetryManager retryManager) {
-    mRetryManager = retryManager;
   }
 
   /** Gets gesture detector. */
@@ -437,6 +430,7 @@ public abstract class AbstractDraweeController<T, INFO> implements
       mHasFetchFailed = false;
       mEventTracker.recordEvent(Event.ON_SUBMIT_CACHE_HIT);
       getControllerListener().onSubmit(mId, mCallerContext);
+      onImageLoadedFromCacheImmediately(mId, closeableImage);
       onNewResultInternal(mId, mDataSource, closeableImage, 1.0f, true, true);
       return;
     }
@@ -664,4 +658,6 @@ public abstract class AbstractDraweeController<T, INFO> implements
   protected T getCachedImage() {
     return null;
   }
+
+  protected void onImageLoadedFromCacheImmediately(String id, T cachedImage) {}
 }

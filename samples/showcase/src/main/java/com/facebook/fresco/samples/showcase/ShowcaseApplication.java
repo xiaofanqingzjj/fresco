@@ -11,25 +11,27 @@
  */
 package com.facebook.fresco.samples.showcase;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import android.app.Application;
 import android.content.Context;
-
 import com.facebook.common.internal.Supplier;
+import com.facebook.common.internal.Suppliers;
 import com.facebook.common.logging.FLog;
 import com.facebook.drawee.backends.pipeline.DraweeConfig;
 import com.facebook.drawee.backends.pipeline.Fresco;
-import com.facebook.fresco.samples.showcase.imagepipeline.ShowcaseMediaIdExtractor;
 import com.facebook.fresco.samples.showcase.misc.DebugOverlaySupplierSingleton;
+import com.facebook.imagepipeline.backends.okhttp3.OkHttpImagePipelineConfigFactory;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
+import com.facebook.imagepipeline.decoder.SimpleProgressiveJpegConfig;
 import com.facebook.imagepipeline.listener.RequestListener;
 import com.facebook.imagepipeline.listener.RequestLoggingListener;
 import com.facebook.imagepipeline.stetho.FrescoStethoPlugin;
 import com.facebook.stetho.DumperPluginsProvider;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.dumpapp.DumperPlugin;
+import com.facebook.stetho.okhttp3.StethoInterceptor;
+import java.util.HashSet;
+import java.util.Set;
+import okhttp3.OkHttpClient;
 
 /**
  * Showcase Application implementation where we set up Fresco
@@ -43,17 +45,30 @@ public class ShowcaseApplication extends Application {
     Set<RequestListener> listeners = new HashSet<>();
     listeners.add(new RequestLoggingListener());
 
-    ImagePipelineConfig imagePipelineConfig = ImagePipelineConfig.newBuilder(this)
-        .setRequestListeners(listeners)
-        .setImageDecoderConfig(CustomImageFormatConfigurator.createImageDecoderConfig(this))
-        .experiment().setMediaVariationsIndexEnabled(new Supplier<Boolean>() {
-          @Override
-          public Boolean get() {
-            return true;
-          }
-        })
-        .experiment().setMediaIdExtractor(new ShowcaseMediaIdExtractor())
+    OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        .addNetworkInterceptor(new StethoInterceptor())
         .build();
+
+    ImagePipelineConfig imagePipelineConfig =
+        OkHttpImagePipelineConfigFactory.newBuilder(this, okHttpClient)
+            .setRequestListeners(listeners)
+            .setProgressiveJpegConfig(new SimpleProgressiveJpegConfig())
+            .setImageDecoderConfig(CustomImageFormatConfigurator.createImageDecoderConfig(this))
+            .experiment()
+            .setMediaVariationsIndexEnabled(
+                new Supplier<Boolean>() {
+                  @Override
+                  public Boolean get() {
+                    return true;
+                  }
+                })
+            .experiment()
+            .setBitmapPrepareToDraw(true, 0, Integer.MAX_VALUE, true)
+            .experiment()
+            .setSmartResizingEnabled(Suppliers.BOOLEAN_TRUE)
+            .build();
+
+    ImagePipelineConfig.getDefaultImageRequestConfig().setProgressiveRenderingEnabled(true);
 
     DraweeConfig.Builder draweeConfigBuilder = DraweeConfig.newBuilder();
     CustomImageFormatConfigurator.addCustomDrawableFactories(this, draweeConfigBuilder);
@@ -64,15 +79,18 @@ public class ShowcaseApplication extends Application {
     Fresco.initialize(this, imagePipelineConfig, draweeConfigBuilder.build());
 
     final Context context = this;
-    Stetho.initialize(Stetho.newInitializerBuilder(context)
-        .enableDumpapp(new DumperPluginsProvider() {
-          @Override
-          public Iterable<DumperPlugin> get() {
-            return new Stetho.DefaultDumperPluginsBuilder(context)
-                .provide(new FrescoStethoPlugin())
-                .finish();
-          }
-        })
-        .build());
+    Stetho.initialize(
+        Stetho.newInitializerBuilder(context)
+            .enableDumpapp(
+                new DumperPluginsProvider() {
+                  @Override
+                  public Iterable<DumperPlugin> get() {
+                    return new Stetho.DefaultDumperPluginsBuilder(context)
+                        .provide(new FrescoStethoPlugin())
+                        .finish();
+                  }
+                })
+            .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(context))
+            .build());
   }
 }

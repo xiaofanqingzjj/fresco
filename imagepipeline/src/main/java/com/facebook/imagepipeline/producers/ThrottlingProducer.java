@@ -1,22 +1,17 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.producers;
 
-import javax.annotation.concurrent.GuardedBy;
-
+import android.util.Pair;
+import com.facebook.common.internal.Preconditions;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
-
-import android.util.Pair;
-
-import com.facebook.common.internal.Preconditions;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Only permits a configurable number of requests to be kicked off simultaneously. If that number
@@ -80,9 +75,9 @@ public class ThrottlingProducer<T> implements Producer<T> {
     }
 
     @Override
-    protected void onNewResultImpl(T newResult, boolean isLast) {
-      getConsumer().onNewResult(newResult, isLast);
-      if (isLast) {
+    protected void onNewResultImpl(T newResult, @Status int status) {
+      getConsumer().onNewResult(newResult, status);
+      if (isLast(status)) {
         onRequestFinished();
       }
     }

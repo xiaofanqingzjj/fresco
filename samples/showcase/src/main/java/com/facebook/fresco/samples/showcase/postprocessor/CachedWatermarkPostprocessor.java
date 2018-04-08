@@ -11,11 +11,9 @@
  */
 package com.facebook.fresco.samples.showcase.postprocessor;
 
-import java.util.Locale;
-
 import com.facebook.cache.common.CacheKey;
 import com.facebook.cache.common.SimpleCacheKey;
-import com.facebook.fresco.samples.showcase.imagepipeline.DurationCallback;
+import java.util.Locale;
 
 /**
  * Adds a watermark at random positions to the bitmap like {@link WatermarkPostprocessor}. However,
@@ -25,10 +23,9 @@ import com.facebook.fresco.samples.showcase.imagepipeline.DurationCallback;
 public class CachedWatermarkPostprocessor extends WatermarkPostprocessor {
 
   public CachedWatermarkPostprocessor(
-      DurationCallback durationCallback,
       int count,
       String watermarkText) {
-    super(durationCallback, count, watermarkText);
+    super(count, watermarkText);
   }
 
   @Override

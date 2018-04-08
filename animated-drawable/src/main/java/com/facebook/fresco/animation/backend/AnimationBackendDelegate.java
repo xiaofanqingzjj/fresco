@@ -1,14 +1,10 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.facebook.fresco.animation.backend;
-
-import javax.annotation.Nullable;
 
 import android.annotation.SuppressLint;
 import android.graphics.Canvas;
@@ -16,6 +12,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntRange;
+import javax.annotation.Nullable;
 
 /**
  * Animation backend delegate that forwards all calls to a given {@link AnimationBackend}
@@ -31,7 +28,7 @@ public class AnimationBackendDelegate<T extends AnimationBackend> implements Ani
   private T mAnimationBackend;
 
   // Animation backend parameters
-  @IntRange(from=-1,to=255)
+  @IntRange(from = -1, to = 255)
   private int mAlpha = ALPHA_UNSET;
   @Nullable
   private ColorFilter mColorFilter;
@@ -63,7 +60,7 @@ public class AnimationBackendDelegate<T extends AnimationBackend> implements Ani
   }
 
   @Override
-  public void setAlpha(@IntRange(from=0,to=255) int alpha) {
+  public void setAlpha(@IntRange(from = 0, to = 255) int alpha) {
     if (mAnimationBackend != null) {
       mAnimationBackend.setAlpha(alpha);
     }

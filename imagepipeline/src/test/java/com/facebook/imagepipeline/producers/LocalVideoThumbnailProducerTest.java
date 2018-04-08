@@ -1,21 +1,25 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.producers;
 
-import java.io.File;
-import java.util.Map;
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 import android.graphics.Bitmap;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.provider.MediaStore;
-
 import com.facebook.common.internal.ImmutableMap;
 import com.facebook.common.memory.PooledByteBufferFactory;
 import com.facebook.common.references.CloseableReference;
@@ -25,26 +29,18 @@ import com.facebook.imagepipeline.image.CloseableStaticBitmap;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.testing.FakeClock;
 import com.facebook.imagepipeline.testing.TestExecutorService;
-
+import java.io.File;
+import java.util.Map;
 import org.junit.*;
 import org.junit.runner.*;
-import org.mockito.Mock;
 import org.mockito.*;
+import org.mockito.Mock;
 import org.mockito.invocation.*;
 import org.mockito.stubbing.*;
 import org.powermock.core.classloader.annotations.*;
 import org.powermock.modules.junit4.rule.*;
 import org.robolectric.*;
 import org.robolectric.annotation.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.*;
 
 /**
  * Basic tests for {@link LocalVideoThumbnailProducer}
@@ -56,6 +52,8 @@ import static org.powermock.api.mockito.PowerMockito.*;
 public class LocalVideoThumbnailProducerTest {
   private static final String PRODUCER_NAME = LocalVideoThumbnailProducer.PRODUCER_NAME;
   private static final String TEST_FILENAME = "dummy.jpg";
+  private static final android.net.Uri LOCAL_VIDEO_URI = Uri.parse("file:///dancing_hotdog.mp4");
+
   @Mock public PooledByteBufferFactory mPooledByteBufferFactory;
   @Mock public Consumer<CloseableReference<CloseableImage>> mConsumer;
   @Mock public ImageRequest mImageRequest;
@@ -77,7 +75,9 @@ public class LocalVideoThumbnailProducerTest {
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
     mExecutor = new TestExecutorService(new FakeClock());
-    mLocalVideoThumbnailProducer = new LocalVideoThumbnailProducer(mExecutor);
+    mLocalVideoThumbnailProducer = new LocalVideoThumbnailProducer(
+        mExecutor,
+        RuntimeEnvironment.application.getContentResolver());
     mFile = new File(RuntimeEnvironment.application.getExternalFilesDir(null), TEST_FILENAME);
 
     mockStatic(ThumbnailUtils.class);
@@ -108,6 +108,7 @@ public class LocalVideoThumbnailProducerTest {
   public void testLocalVideoMiniThumbnailSuccess() throws Exception {
     when(mImageRequest.getPreferredWidth()).thenReturn(100);
     when(mImageRequest.getPreferredHeight()).thenReturn(100);
+    when(mImageRequest.getSourceUri()).thenReturn(LOCAL_VIDEO_URI);
     when(
         android.media.ThumbnailUtils.createVideoThumbnail(
             mFile.getPath(), MediaStore.Images.Thumbnails.MINI_KIND))
@@ -119,7 +120,7 @@ public class LocalVideoThumbnailProducerTest {
             mCloseableReference = ((CloseableReference) invocation.getArguments()[0]).clone();
             return null;
           }
-        }).when(mConsumer).onNewResult(any(CloseableReference.class), eq(true));
+        }).when(mConsumer).onNewResult(any(CloseableReference.class), eq(Consumer.IS_LAST));
     mLocalVideoThumbnailProducer.produceResults(mConsumer, mProducerContext);
     mExecutor.runUntilIdle();
     assertEquals(1, mCloseableReference.getUnderlyingReferenceTestOnly().getRefCountTestOnly());
@@ -133,6 +134,7 @@ public class LocalVideoThumbnailProducerTest {
 
   @Test
   public void testLocalVideoMicroThumbnailSuccess() throws Exception {
+    when(mImageRequest.getSourceUri()).thenReturn(LOCAL_VIDEO_URI);
     when(mProducerListener.requiresExtraMap(mRequestId)).thenReturn(true);
     when(
         android.media.ThumbnailUtils.createVideoThumbnail(
@@ -145,7 +147,7 @@ public class LocalVideoThumbnailProducerTest {
             mCloseableReference = ((CloseableReference) invocation.getArguments()[0]).clone();
             return null;
           }
-        }).when(mConsumer).onNewResult(any(CloseableReference.class), eq(true));
+        }).when(mConsumer).onNewResult(any(CloseableReference.class), eq(Consumer.IS_LAST));
     mLocalVideoThumbnailProducer.produceResults(mConsumer, mProducerContext);
     mExecutor.runUntilIdle();
     assertEquals(1, mCloseableReference.getUnderlyingReferenceTestOnly().getRefCountTestOnly());
@@ -169,7 +171,7 @@ public class LocalVideoThumbnailProducerTest {
         .thenReturn(null);
     mLocalVideoThumbnailProducer.produceResults(mConsumer, mProducerContext);
     mExecutor.runUntilIdle();
-    verify(mConsumer).onNewResult(null, true);
+    verify(mConsumer).onNewResult(null, Consumer.IS_LAST);
     verify(mProducerListener).onProducerStart(mRequestId, PRODUCER_NAME);
     Map<String, String> thumbnailNotFoundMap =
         ImmutableMap.of(LocalVideoThumbnailProducer.CREATED_THUMBNAIL, "false");

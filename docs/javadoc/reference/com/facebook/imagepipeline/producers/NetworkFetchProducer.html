@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -308,6 +308,7 @@
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/BitmapMemoryCacheGetProducer.html">BitmapMemoryCacheGetProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/BitmapMemoryCacheKeyMultiplexProducer.html">BitmapMemoryCacheKeyMultiplexProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/BitmapMemoryCacheProducer.html">BitmapMemoryCacheProducer</a></li>
+          <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/BitmapPrepareProducer.html">BitmapPrepareProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/BranchOnSeparateImagesProducer.html">BranchOnSeparateImagesProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/DataFetchProducer.html">DataFetchProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/DecodeProducer.html">DecodeProducer</a></li>
@@ -332,9 +333,11 @@
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/MultiplexProducer.html">MultiplexProducer</a>&lt;K,&nbsp;T&nbsp;extends&nbsp;Closeable&gt;</li>
           <li class="selected api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/NetworkFetchProducer.html">NetworkFetchProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/NullProducer.html">NullProducer</a>&lt;T&gt;</li>
+          <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/PartialDiskCacheProducer.html">PartialDiskCacheProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/PostprocessedBitmapMemoryCacheProducer.html">PostprocessedBitmapMemoryCacheProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/PostprocessedBitmapMemoryCacheProducer.CachedPostprocessorConsumer.html">PostprocessedBitmapMemoryCacheProducer.CachedPostprocessorConsumer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/PostprocessorProducer.html">PostprocessorProducer</a></li>
+          <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/QualifiedResourceFetchProducer.html">QualifiedResourceFetchProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/RemoveImageTransformMetaDataProducer.html">RemoveImageTransformMetaDataProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/ResizeAndRotateProducer.html">ResizeAndRotateProducer</a></li>
           <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/SettableProducerContext.html">SettableProducerContext</a></li>
@@ -349,6 +352,11 @@
       </ul>
     </li>
               
+    <li><h2>Annotations</h2>
+      <ul>
+          <li class="api apilevel-"><a href="../../../../com/facebook/imagepipeline/producers/Consumer.Status.html">Consumer.Status</a></li>
+      </ul>
+    </li>
               
               
               
@@ -428,6 +436,9 @@ Summary:
   &#124; <a href="#pubmethods">Methods</a>
   
 
+
+  &#124; <a href="#promethods">Protected Methods</a>
+  
 
 
   &#124; <a href="#inhmethods">Inherited Methods</a>
@@ -642,6 +653,79 @@ Summary:
 </table>
 
 
+
+
+<!-- ========== METHOD SUMMARY =========== -->
+<table id="promethods" class="jd-sumtable"><tr><th colspan="12">Protected Methods</th></tr>
+
+
+
+	 
+    <tr class="alt-color api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            static
+            
+            float
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/producers/NetworkFetchProducer.html#calculateProgress(int, int)">calculateProgress</a></span>(int downloaded, int total)
+        
+  </td></tr>
+
+
+	 
+    <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            void
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/producers/NetworkFetchProducer.html#handleFinalResult(com.facebook.common.memory.PooledByteBufferOutputStream, com.facebook.imagepipeline.producers.FetchState)">handleFinalResult</a></span>(<a href="../../../../com/facebook/common/memory/PooledByteBufferOutputStream.html">PooledByteBufferOutputStream</a> pooledOutputStream, <a href="../../../../com/facebook/imagepipeline/producers/FetchState.html">FetchState</a> fetchState)
+        
+  </td></tr>
+
+
+	 
+    <tr class="alt-color api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            void
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/producers/NetworkFetchProducer.html#maybeHandleIntermediateResult(com.facebook.common.memory.PooledByteBufferOutputStream, com.facebook.imagepipeline.producers.FetchState)">maybeHandleIntermediateResult</a></span>(<a href="../../../../com/facebook/common/memory/PooledByteBufferOutputStream.html">PooledByteBufferOutputStream</a> pooledOutputStream, <a href="../../../../com/facebook/imagepipeline/producers/FetchState.html">FetchState</a> fetchState)
+        
+  </td></tr>
+
+
+	 
+    <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            void
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/producers/NetworkFetchProducer.html#onResponse(com.facebook.imagepipeline.producers.FetchState, java.io.InputStream, int)">onResponse</a></span>(<a href="../../../../com/facebook/imagepipeline/producers/FetchState.html">FetchState</a> fetchState, InputStream responseData, int responseContentLength)
+        
+  </td></tr>
+
+
+
+</table>
 
 
 
@@ -1098,6 +1182,144 @@ From interface
 
 
 <!-- ========= METHOD DETAIL ======== -->
+
+<h2>Protected Methods</h2>
+
+
+
+<a id="calculateProgress(int, int)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        protected 
+        static 
+         
+         
+         
+        float
+      </span>
+      <span class="sympad">calculateProgress</span>
+      <span class="normal">(int downloaded, int total)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
+<a id="handleFinalResult(com.facebook.common.memory.PooledByteBufferOutputStream, com.facebook.imagepipeline.producers.FetchState)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        protected 
+         
+         
+         
+         
+        void
+      </span>
+      <span class="sympad">handleFinalResult</span>
+      <span class="normal">(<a href="../../../../com/facebook/common/memory/PooledByteBufferOutputStream.html">PooledByteBufferOutputStream</a> pooledOutputStream, <a href="../../../../com/facebook/imagepipeline/producers/FetchState.html">FetchState</a> fetchState)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
+<a id="maybeHandleIntermediateResult(com.facebook.common.memory.PooledByteBufferOutputStream, com.facebook.imagepipeline.producers.FetchState)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        protected 
+         
+         
+         
+         
+        void
+      </span>
+      <span class="sympad">maybeHandleIntermediateResult</span>
+      <span class="normal">(<a href="../../../../com/facebook/common/memory/PooledByteBufferOutputStream.html">PooledByteBufferOutputStream</a> pooledOutputStream, <a href="../../../../com/facebook/imagepipeline/producers/FetchState.html">FetchState</a> fetchState)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
+<a id="onResponse(com.facebook.imagepipeline.producers.FetchState, java.io.InputStream, int)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        protected 
+         
+         
+         
+         
+        void
+      </span>
+      <span class="sympad">onResponse</span>
+      <span class="normal">(<a href="../../../../com/facebook/imagepipeline/producers/FetchState.html">FetchState</a> fetchState, InputStream responseData, int responseContentLength)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+  <div class="jd-tagdata">
+      <h5 class="jd-tagtitle">Throws</h5>
+      <table class="jd-tagtable">  
+        <tr>
+            <th>IOException</td>
+            <td></td>
+        </tr>
+      </table>
+  </div>
+
+    </div>
+</div>
+
+
 
 
 

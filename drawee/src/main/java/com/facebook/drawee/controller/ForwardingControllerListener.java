@@ -1,22 +1,18 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.controller;
 
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import android.graphics.drawable.Animatable;
 import android.util.Log;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Listener that forwards controller events to multiple listeners.
@@ -43,8 +39,7 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
   }
 
   public static <INFO> ForwardingControllerListener<INFO> of(
-      ControllerListener<? super INFO> listener1,
-      ControllerListener<? super INFO> listener2) {
+      ControllerListener<? super INFO> listener1, ControllerListener<? super INFO> listener2) {
     ForwardingControllerListener<INFO> forwarder = create();
     forwarder.addListener(listener1);
     forwarder.addListener(listener2);
@@ -56,7 +51,10 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
   }
 
   public synchronized void removeListener(ControllerListener<? super INFO> listener) {
-    mListeners.remove(listener);
+    int index = mListeners.indexOf(listener);
+    if (index != -1) {
+      mListeners.set(index, null);
+    }
   }
 
   public synchronized void clearListeners() {
@@ -73,7 +71,9 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
     for (int i = 0; i < numberOfListeners; ++i) {
       try {
         ControllerListener<? super INFO> listener = mListeners.get(i);
-        listener.onSubmit(id, callerContext);
+        if (listener != null) {
+          listener.onSubmit(id, callerContext);
+        }
       } catch (Exception exception) {
         // Don't punish the other listeners if we're given a bad one.
         onException("InternalListener exception in onSubmit", exception);
@@ -90,7 +90,9 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
     for (int i = 0; i < numberOfListeners; ++i) {
       try {
         ControllerListener<? super INFO> listener = mListeners.get(i);
-        listener.onFinalImageSet(id, imageInfo, animatable);
+        if (listener != null) {
+          listener.onFinalImageSet(id, imageInfo, animatable);
+        }
       } catch (Exception exception) {
         // Don't punish the other listeners if we're given a bad one.
         onException("InternalListener exception in onFinalImageSet", exception);
@@ -104,7 +106,9 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
     for (int i = 0; i < numberOfListeners; ++i) {
       try {
         ControllerListener<? super INFO> listener = mListeners.get(i);
-        listener.onIntermediateImageSet(id, imageInfo);
+        if (listener != null) {
+          listener.onIntermediateImageSet(id, imageInfo);
+        }
       } catch (Exception exception) {
         // Don't punish the other listeners if we're given a bad one.
         onException("InternalListener exception in onIntermediateImageSet", exception);
@@ -118,7 +122,9 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
     for (int i = 0; i < numberOfListeners; ++i) {
       try {
         ControllerListener<? super INFO> listener = mListeners.get(i);
-        listener.onIntermediateImageFailed(id, throwable);
+        if (listener != null) {
+          listener.onIntermediateImageFailed(id, throwable);
+        }
       } catch (Exception exception) {
         // Don't punish the other listeners if we're given a bad one.
         onException("InternalListener exception in onIntermediateImageFailed", exception);
@@ -132,7 +138,9 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
     for (int i = 0; i < numberOfListeners; ++i) {
       try {
         ControllerListener<? super INFO> listener = mListeners.get(i);
-        listener.onFailure(id, throwable);
+        if (listener != null) {
+          listener.onFailure(id, throwable);
+        }
       } catch (Exception exception) {
         // Don't punish the other listeners if we're given a bad one.
         onException("InternalListener exception in onFailure", exception);
@@ -146,7 +154,9 @@ public class ForwardingControllerListener<INFO> implements ControllerListener<IN
     for (int i = 0; i < numberOfListeners; ++i) {
       try {
         ControllerListener<? super INFO> listener = mListeners.get(i);
-        listener.onRelease(id);
+        if (listener != null) {
+          listener.onRelease(id);
+        }
       } catch (Exception exception) {
         // Don't punish the other listeners if we're given a bad one.
         onException("InternalListener exception in onRelease", exception);

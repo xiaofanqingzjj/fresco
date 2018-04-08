@@ -11,8 +11,6 @@
  */
 package com.facebook.fresco.samples.showcase.imagepipeline;
 
-import java.util.Locale;
-
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -25,21 +23,25 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.interfaces.DraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.fresco.samples.showcase.BaseShowcaseFragment;
 import com.facebook.fresco.samples.showcase.R;
-import com.facebook.fresco.samples.showcase.postprocessor.BlurPostprocessor;
+import com.facebook.fresco.samples.showcase.misc.ImageUriProvider;
+import com.facebook.fresco.samples.showcase.postprocessor.BenchmarkPostprocessorForDuplicatedBitmapInPlace;
+import com.facebook.fresco.samples.showcase.postprocessor.BenchmarkPostprocessorForManualBitmapHandling;
 import com.facebook.fresco.samples.showcase.postprocessor.CachedWatermarkPostprocessor;
 import com.facebook.fresco.samples.showcase.postprocessor.FasterGreyScalePostprocessor;
 import com.facebook.fresco.samples.showcase.postprocessor.ScalingBlurPostprocessor;
 import com.facebook.fresco.samples.showcase.postprocessor.SlowGreyScalePostprocessor;
 import com.facebook.fresco.samples.showcase.postprocessor.WatermarkPostprocessor;
+import com.facebook.imagepipeline.postprocessors.IterativeBoxBlurPostProcessor;
+import com.facebook.imagepipeline.postprocessors.RoundAsCirclePostprocessor;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
 import com.facebook.imagepipeline.request.Postprocessor;
+import java.util.Locale;
 
 /**
  * Fragment that illustrates how to use the image pipeline directly in order to create
@@ -48,39 +50,46 @@ import com.facebook.imagepipeline.request.Postprocessor;
 public class ImagePipelinePostProcessorFragment extends BaseShowcaseFragment
     implements DurationCallback {
 
-  private static final Uri URI =
-      Uri.parse("http://frescolib.org/static/sample-images/animal_a_l.jpg");
-
   private static final int WATERMARK_COUNT = 10;
   private static final String WATERMARK_STRING = "WATERMARK";
 
-  private final Entry[] SPINNER_ENTRIES = new Entry[]{
-      new Entry(
-          R.string.imagepipeline_postprocessor_show_original,
-          null),
-      new Entry(
-          R.string.imagepipeline_postprocessor_set_greyscale_slow,
-          new SlowGreyScalePostprocessor(this)),
-      new Entry(
-          R.string.imagepipeline_postprocessor_set_greyscale,
-          new FasterGreyScalePostprocessor(this)),
-      new Entry(
-          R.string.imagepipeline_postprocessor_set_watermark,
-          new WatermarkPostprocessor(this, WATERMARK_COUNT, WATERMARK_STRING)),
-      new Entry(
-          R.string.imagepipeline_postprocessor_set_watermark_cached,
-          new CachedWatermarkPostprocessor(this, WATERMARK_COUNT, WATERMARK_STRING)),
-      new Entry(
-          R.string.imagepipeline_postprocessor_set_blur,
-          new BlurPostprocessor(this)),
-      new Entry(
-          R.string.imagepipeline_postprocessor_set_scaling_blur,
-          new ScalingBlurPostprocessor(this)),
-  };
+  private final Entry[] SPINNER_ENTRIES =
+      new Entry[] {
+        new Entry(R.string.imagepipeline_postprocessor_show_original, null),
+        new Entry(
+            R.string.imagepipeline_postprocessor_set_greyscale_slow,
+            new BenchmarkPostprocessorForDuplicatedBitmapInPlace(
+                this, new SlowGreyScalePostprocessor())),
+        new Entry(
+            R.string.imagepipeline_postprocessor_set_greyscale,
+            new BenchmarkPostprocessorForDuplicatedBitmapInPlace(
+                this, new FasterGreyScalePostprocessor())),
+        new Entry(
+            R.string.imagepipeline_postprocessor_set_watermark,
+            new BenchmarkPostprocessorForDuplicatedBitmapInPlace(
+                this, new WatermarkPostprocessor(WATERMARK_COUNT, WATERMARK_STRING))),
+        new Entry(
+            R.string.imagepipeline_postprocessor_set_watermark_cached,
+            new BenchmarkPostprocessorForDuplicatedBitmapInPlace(
+                this, new CachedWatermarkPostprocessor(WATERMARK_COUNT, WATERMARK_STRING))),
+        new Entry(
+            R.string.imagepipeline_postprocessor_set_blur,
+            new BenchmarkPostprocessorForDuplicatedBitmapInPlace(
+                this, new IterativeBoxBlurPostProcessor(25, 3))),
+        new Entry(
+            R.string.imagepipeline_postprocessor_set_scaling_blur,
+            new BenchmarkPostprocessorForManualBitmapHandling(
+                this, new ScalingBlurPostprocessor(25, 3, 4))),
+        new Entry(
+            R.string.imagepipeline_postprocessor_set_round_as_circle,
+            new BenchmarkPostprocessorForDuplicatedBitmapInPlace(
+                this, new RoundAsCirclePostprocessor())),
+      };
 
   private Button mButton;
   private SimpleDraweeView mDraweeMain;
   private Spinner mSpinner;
+  private Uri mUri;
 
   @Nullable
   @Override
@@ -93,6 +102,9 @@ public class ImagePipelinePostProcessorFragment extends BaseShowcaseFragment
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    final ImageUriProvider imageUriProvider = ImageUriProvider.getInstance(getContext());
+    mUri = imageUriProvider.createSampleUri(ImageUriProvider.ImageSize.L);
+
     mButton = (Button) view.findViewById(R.id.button);
     mDraweeMain = (SimpleDraweeView) view.findViewById(R.id.drawee_view);
     mSpinner = (Spinner) view.findViewById(R.id.spinner);
@@ -138,7 +150,7 @@ public class ImagePipelinePostProcessorFragment extends BaseShowcaseFragment
   }
 
   private void setPostprocessor(Postprocessor postprocessor) {
-    final ImageRequest imageRequest = ImageRequestBuilder.newBuilderWithSource(URI)
+    final ImageRequest imageRequest = ImageRequestBuilder.newBuilderWithSource(mUri)
         .setPostprocessor(postprocessor)
         .build();
 

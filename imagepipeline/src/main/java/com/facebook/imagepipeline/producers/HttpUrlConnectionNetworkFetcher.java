@@ -1,14 +1,16 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.producers;
 
+import android.net.Uri;
+import com.facebook.common.internal.VisibleForTesting;
+import com.facebook.common.util.UriUtil;
+import com.facebook.imagepipeline.image.EncodedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -17,11 +19,6 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import android.net.Uri;
-
-import com.facebook.common.internal.VisibleForTesting;
-import com.facebook.imagepipeline.image.EncodedImage;
 
 /**
  * Network fetcher that uses the simplest Android stack.
@@ -37,10 +34,19 @@ public class HttpUrlConnectionNetworkFetcher extends BaseNetworkFetcher<FetchSta
   public static final int HTTP_TEMPORARY_REDIRECT = 307;
   public static final int HTTP_PERMANENT_REDIRECT = 308;
 
+  public static final int HTTP_DEFAULT_TIMEOUT = 30000;
+
+  private int mHttpConnectionTimeout;
+
   private final ExecutorService mExecutorService;
 
   public HttpUrlConnectionNetworkFetcher() {
     this(Executors.newFixedThreadPool(NUM_NETWORK_THREADS));
+  }
+
+  public HttpUrlConnectionNetworkFetcher(int httpConnectionTimeout) {
+    this(Executors.newFixedThreadPool(NUM_NETWORK_THREADS));
+    mHttpConnectionTimeout = httpConnectionTimeout;
   }
 
   @VisibleForTesting
@@ -103,6 +109,7 @@ public class HttpUrlConnectionNetworkFetcher extends BaseNetworkFetcher<FetchSta
 
   private HttpURLConnection downloadFrom(Uri uri, int maxRedirects) throws IOException {
     HttpURLConnection connection = openConnectionTo(uri);
+    connection.setConnectTimeout(mHttpConnectionTimeout);
     int responseCode = connection.getResponseCode();
 
     if (isHttpSuccess(responseCode)) {
@@ -133,7 +140,7 @@ public class HttpUrlConnectionNetworkFetcher extends BaseNetworkFetcher<FetchSta
 
   @VisibleForTesting
   static HttpURLConnection openConnectionTo(Uri uri) throws IOException {
-    URL url = new URL(uri.toString());
+    URL url = UriUtil.uriToUrl(uri);
     return (HttpURLConnection) url.openConnection();
   }
 

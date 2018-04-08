@@ -1,24 +1,31 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.producers;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
+import android.net.Uri;
+import com.facebook.common.util.UriUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.Queue;
-
-import android.net.Uri;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,17 +38,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ HttpUrlConnectionNetworkFetcher.class, Uri.class })
+@PrepareForTest({HttpUrlConnectionNetworkFetcher.class, Uri.class, UriUtil.class})
 public class HttpUrlConnectionNetworkFetcherTest {
 
   public static final String INITIAL_TEST_URL = "http://localhost/";
@@ -62,6 +60,7 @@ public class HttpUrlConnectionNetworkFetcherTest {
     mConnectionsQueue = new LinkedList<>();
     mockUrlConnections();
     mockUriParse();
+    mockUriWithAppendedPath();
     mockFetchState();
   }
 
@@ -85,6 +84,17 @@ public class HttpUrlConnectionNetworkFetcherTest {
         return mockUri((String) invocation.getArguments()[0]);
       }
     });
+  }
+
+  private void mockUriWithAppendedPath() {
+    PowerMockito.when(Uri.withAppendedPath(any(Uri.class), anyString()))
+        .then(
+            new Answer<Uri>() {
+              @Override
+              public Uri answer(InvocationOnMock invocation) throws Throwable {
+                return (Uri) invocation.getArguments()[0];
+              }
+            });
   }
 
   private Uri mockUri(final String url) {
@@ -184,6 +194,21 @@ public class HttpUrlConnectionNetworkFetcherTest {
     verifyZeroInteractions(mockResponseAfterSixRedirects);
 
     verifyNoMoreInteractions(mMockCallback);
+  }
+
+  @Test
+  public void testHttpUrlConnectionTimeout() throws Exception {
+
+    URL mockURL = PowerMockito.mock(URL.class);
+    HttpURLConnection mockConnection = PowerMockito.mock(HttpURLConnection.class);
+    mockConnection.setConnectTimeout(30000);
+
+    PowerMockito.when(mockURL.openConnection()).thenReturn(mockConnection);
+
+    SocketTimeoutException expectedException = new SocketTimeoutException();
+    PowerMockito.when(mockConnection.getResponseCode()).thenThrow(expectedException);
+
+    verify(mockConnection).setConnectTimeout(30000);
   }
 
   private HttpURLConnection mockSuccess() throws IOException {

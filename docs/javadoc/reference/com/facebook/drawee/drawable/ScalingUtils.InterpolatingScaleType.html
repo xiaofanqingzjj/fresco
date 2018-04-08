@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -608,12 +608,23 @@ Summary:
           static
           final
           <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a></td>
-          <td class="jd-linkcol"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FIT_CENTER">FIT_CENTER</a></td>
+          <td class="jd-linkcol"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FIT_BOTTOM_START">FIT_BOTTOM_START</a></td>
           <td class="jd-descrcol" width="100%">Scales the child so that it fits entirely inside the parent.</td>
       </tr>
       
     
       <tr class="alt-color api apilevel-" >
+          <td class="jd-typecol">
+          public
+          static
+          final
+          <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a></td>
+          <td class="jd-linkcol"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FIT_CENTER">FIT_CENTER</a></td>
+          <td class="jd-descrcol" width="100%">Scales the child so that it fits entirely inside the parent.</td>
+      </tr>
+      
+    
+      <tr class=" api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -624,7 +635,7 @@ Summary:
       </tr>
       
     
-      <tr class=" api apilevel-" >
+      <tr class="alt-color api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -635,7 +646,7 @@ Summary:
       </tr>
       
     
-      <tr class="alt-color api apilevel-" >
+      <tr class=" api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -646,7 +657,7 @@ Summary:
       </tr>
       
     
-      <tr class=" api apilevel-" >
+      <tr class="alt-color api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -687,13 +698,29 @@ Summary:
             
         </td>
         <td class="jd-linkcol" width="100%">
-        <span class="sympad"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.InterpolatingScaleType.html#InterpolatingScaleType(com.facebook.drawee.drawable.ScalingUtils.ScaleType, com.facebook.drawee.drawable.ScalingUtils.ScaleType, android.graphics.Rect, android.graphics.Rect)">InterpolatingScaleType</a></span>(<a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeFrom, <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeTo, Rect boundsFrom, Rect boundsTo)
+        <span class="sympad"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.InterpolatingScaleType.html#InterpolatingScaleType(com.facebook.drawee.drawable.ScalingUtils.ScaleType, com.facebook.drawee.drawable.ScalingUtils.ScaleType, android.graphics.Rect, android.graphics.Rect, android.graphics.PointF, android.graphics.PointF)">InterpolatingScaleType</a></span>(<a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeFrom, <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeTo, Rect boundsFrom, Rect boundsTo, PointF focusPointFrom, PointF focusPointTo)
         
   </td></tr>
 
 
 	 
     <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.InterpolatingScaleType.html#InterpolatingScaleType(com.facebook.drawee.drawable.ScalingUtils.ScaleType, com.facebook.drawee.drawable.ScalingUtils.ScaleType, android.graphics.Rect, android.graphics.Rect)">InterpolatingScaleType</a></span>(<a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeFrom, <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeTo, Rect boundsFrom, Rect boundsTo)
+        
+  </td></tr>
+
+
+	 
+    <tr class="alt-color api apilevel-" >
         <td class="jd-typecol">
             
             
@@ -749,6 +776,38 @@ Summary:
         </td>
         <td class="jd-linkcol" width="100%">
         <span class="sympad"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.InterpolatingScaleType.html#getBoundsTo()">getBoundsTo</a></span>()
+        
+  </td></tr>
+
+
+	 
+    <tr class="alt-color api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            PointF
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.InterpolatingScaleType.html#getFocusPointFrom()">getFocusPointFrom</a></span>()
+        
+  </td></tr>
+
+
+	 
+    <tr class=" api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            PointF
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.InterpolatingScaleType.html#getFocusPointTo()">getFocusPointTo</a></span>()
         
   </td></tr>
 
@@ -1211,6 +1270,37 @@ From interface
 
 
 
+<a id="InterpolatingScaleType(com.facebook.drawee.drawable.ScalingUtils.ScaleType, com.facebook.drawee.drawable.ScalingUtils.ScaleType, android.graphics.Rect, android.graphics.Rect, android.graphics.PointF, android.graphics.PointF)"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        
+      </span>
+      <span class="sympad">InterpolatingScaleType</span>
+      <span class="normal">(<a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeFrom, <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a> scaleTypeTo, Rect boundsFrom, Rect boundsTo, PointF focusPointFrom, PointF focusPointTo)</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
 <a id="InterpolatingScaleType(com.facebook.drawee.drawable.ScalingUtils.ScaleType, com.facebook.drawee.drawable.ScalingUtils.ScaleType, android.graphics.Rect, android.graphics.Rect)"></a>
 
 <div class="jd-details api apilevel-"> 
@@ -1350,6 +1440,68 @@ From interface
 </div>
 
 
+<a id="getFocusPointFrom()"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        PointF
+      </span>
+      <span class="sympad">getFocusPointFrom</span>
+      <span class="normal">()</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
+<a id="getFocusPointTo()"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        PointF
+      </span>
+      <span class="sympad">getFocusPointTo</span>
+      <span class="normal">()</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
 <a id="getScaleTypeFrom()"></a>
 
 <div class="jd-details api apilevel-"> 
@@ -1439,9 +1591,9 @@ From interface
       
   <div class="jd-tagdata jd-tagdescr"><p>Returns the internal state. The returned object must be immutable!
 
- The returned state may be used for caching the result of <code>ScaleType.getTransform</code>.
- If null state is returned, the result will not be cached. If non-null state is returned,
- the old transformation may be used if produced with an equal state.
+ <p>The returned state may be used for caching the result of <code>ScaleType.getTransform</code>.
+ If null state is returned, the result will not be cached. If non-null state is returned, the
+ old transformation may be used if produced with an equal state.
 </p></div>
 
     </div>

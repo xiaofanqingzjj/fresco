@@ -1,25 +1,33 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.facebook.fresco.animation.bitmap;
+
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-
 import com.facebook.common.references.CloseableReference;
 import com.facebook.common.references.ResourceReleaser;
 import com.facebook.fresco.animation.backend.AnimationBackend;
 import com.facebook.fresco.animation.backend.AnimationInformation;
+import com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparationStrategy;
+import com.facebook.fresco.animation.bitmap.preparation.BitmapFramePreparer;
 import com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,16 +35,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 import org.robolectric.RobolectricTestRunner;
 
 /**
@@ -55,6 +53,8 @@ public class BitmapAnimationBackendTest {
   @Mock public Bitmap mBitmap;
   @Mock public ResourceReleaser<Bitmap> mBitmapResourceReleaser;
   @Mock public BitmapAnimationBackend.FrameListener mFrameListener;
+  @Mock public BitmapFramePreparationStrategy mBitmapFramePreparationStrategy;
+  @Mock public BitmapFramePreparer mBitmapFramePreparer;
 
   @Captor public ArgumentCaptor<CloseableReference<Bitmap>> mCapturedBitmapReference;
 
@@ -70,7 +70,9 @@ public class BitmapAnimationBackendTest {
         mPlatformBitmapFactory,
         mBitmapFrameCache,
         mAnimationInformation,
-        mBitmapFrameRenderer);
+        mBitmapFrameRenderer,
+        mBitmapFramePreparationStrategy,
+        mBitmapFramePreparer);
     mBitmapAnimationBackend.setFrameListener(mFrameListener);
   }
 
@@ -269,7 +271,8 @@ public class BitmapAnimationBackendTest {
     verify(mFrameListener).onDrawFrameStart(mBitmapAnimationBackend, 1);
     verify(mBitmapFrameCache).getCachedFrame(1);
     verify(mCanvas).drawBitmap(eq(mBitmap), eq(0f), eq(0f), any(Paint.class));
-    verifyListenersCalled(1, mBitmap, BitmapAnimationBackend.FRAME_TYPE_CACHED);
+    verifyFramePreparationStrategyCalled(1);
+    verifyListenersAndCacheNotified(1, BitmapAnimationBackend.FRAME_TYPE_CACHED);
     assertReferencesClosed();
   }
 
@@ -286,7 +289,8 @@ public class BitmapAnimationBackendTest {
     verify(mBitmapFrameCache).getBitmapToReuseForFrame(1, 0, 0);
     verify(mBitmapFrameRenderer).renderFrame(1, mBitmap);
     verify(mCanvas).drawBitmap(eq(mBitmap), eq(0f), eq(0f), any(Paint.class));
-    verifyListenersCalled(1, mBitmap, BitmapAnimationBackend.FRAME_TYPE_REUSED);
+    verifyFramePreparationStrategyCalled(1);
+    verifyListenersAndCacheNotified(1, BitmapAnimationBackend.FRAME_TYPE_REUSED);
     assertReferencesClosed();
   }
 
@@ -304,7 +308,8 @@ public class BitmapAnimationBackendTest {
     verify(mPlatformBitmapFactory).createBitmap(0, 0, Bitmap.Config.ARGB_8888);
     verify(mBitmapFrameRenderer).renderFrame(2, mBitmap);
     verify(mCanvas).drawBitmap(eq(mBitmap), eq(0f), eq(0f), any(Paint.class));
-    verifyListenersCalled(2, mBitmap, BitmapAnimationBackend.FRAME_TYPE_CREATED);
+    verifyFramePreparationStrategyCalled(2);
+    verifyListenersAndCacheNotified(2, BitmapAnimationBackend.FRAME_TYPE_CREATED);
     assertReferencesClosed();
   }
 
@@ -332,7 +337,8 @@ public class BitmapAnimationBackendTest {
     verify(mPlatformBitmapFactory).createBitmap(width, height, Bitmap.Config.ARGB_8888);
     verify(mBitmapFrameRenderer).renderFrame(2, mBitmap);
     verify(mCanvas).drawBitmap(eq(mBitmap), isNull(Rect.class), eq(mBounds), any(Paint.class));
-    verifyListenersCalled(2, mBitmap, BitmapAnimationBackend.FRAME_TYPE_CREATED);
+    verifyFramePreparationStrategyCalled(2);
+    verifyListenersAndCacheNotified(2, BitmapAnimationBackend.FRAME_TYPE_CREATED);
     assertReferencesClosed();
   }
 
@@ -349,7 +355,8 @@ public class BitmapAnimationBackendTest {
     verify(mPlatformBitmapFactory).createBitmap(0, 0, Bitmap.Config.ARGB_8888);
     verify(mBitmapFrameCache).getFallbackFrame(3);
     verify(mCanvas).drawBitmap(eq(mBitmap), eq(0f), eq(0f), any(Paint.class));
-    verifyListenersCalled(3, mBitmap, BitmapAnimationBackend.FRAME_TYPE_FALLBACK);
+    verifyFramePreparationStrategyCalled(3);
+    verifyListenersNotifiedWithoutCache(3, BitmapAnimationBackend.FRAME_TYPE_FALLBACK);
     assertReferencesClosed();
   }
 
@@ -374,7 +381,8 @@ public class BitmapAnimationBackendTest {
     assertThat(temporaryBitmap.isValid()).isFalse();
     verify(mBitmapFrameCache).getFallbackFrame(3);
     verify(mCanvas).drawBitmap(eq(mBitmap), eq(0f), eq(0f), any(Paint.class));
-    verifyListenersCalled(3, mBitmap, BitmapAnimationBackend.FRAME_TYPE_FALLBACK);
+    verifyFramePreparationStrategyCalled(3);
+    verifyListenersNotifiedWithoutCache(3, BitmapAnimationBackend.FRAME_TYPE_FALLBACK);
     assertReferencesClosed();
   }
 
@@ -388,13 +396,21 @@ public class BitmapAnimationBackendTest {
     verify(mPlatformBitmapFactory).createBitmap(0, 0, Bitmap.Config.ARGB_8888);
     verify(mBitmapFrameCache).getFallbackFrame(4);
     verifyNoMoreInteractions(mCanvas, mBitmapFrameCache);
+    verifyFramePreparationStrategyCalled(4);
     verify(mFrameListener)
         .onFrameDropped(mBitmapAnimationBackend, 4);
   }
 
-  private void verifyListenersCalled(
+  private void verifyFramePreparationStrategyCalled(int frameNumber) {
+    verify(mBitmapFramePreparationStrategy).prepareFrames(
+        mBitmapFramePreparer,
+        mBitmapFrameCache,
+        mBitmapAnimationBackend,
+        frameNumber);
+  }
+
+  private void verifyListenersAndCacheNotified(
       int frameNumber,
-      Bitmap bitmap,
       @BitmapAnimationBackend.FrameType int frameType) {
     // Verify cache callback
     verify(mBitmapFrameCache).onFrameRendered(
@@ -402,6 +418,19 @@ public class BitmapAnimationBackendTest {
         mCapturedBitmapReference.capture(),
         eq(frameType));
     assertThat(mCapturedBitmapReference.getValue()).isEqualTo(mBitmapRefererence);
+
+    // Verify frame listener
+    verify(mFrameListener).onFrameDrawn(mBitmapAnimationBackend, frameNumber, frameType);
+  }
+
+  private void verifyListenersNotifiedWithoutCache(
+      int frameNumber,
+      @BitmapAnimationBackend.FrameType int frameType) {
+    // Verify cache callback
+    verify(mBitmapFrameCache, never()).onFrameRendered(
+        anyInt(),
+        mCapturedBitmapReference.capture(),
+        eq(frameType));
 
     // Verify frame listener
     verify(mFrameListener).onFrameDrawn(mBitmapAnimationBackend, frameNumber, frameType);

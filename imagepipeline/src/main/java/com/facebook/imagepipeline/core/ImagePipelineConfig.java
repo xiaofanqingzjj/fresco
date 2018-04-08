@@ -1,24 +1,15 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.imagepipeline.core;
 
-import javax.annotation.Nullable;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Bitmap;
-
 import com.facebook.cache.disk.DiskCacheConfig;
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.internal.Supplier;
@@ -28,10 +19,11 @@ import com.facebook.common.memory.NoOpMemoryTrimmableRegistry;
 import com.facebook.common.webp.BitmapCreator;
 import com.facebook.common.webp.WebpBitmapFactory;
 import com.facebook.common.webp.WebpSupportStatus;
-import com.facebook.imagepipeline.animated.factory.AnimatedImageFactory;
 import com.facebook.imagepipeline.bitmaps.HoneycombBitmapCreator;
 import com.facebook.imagepipeline.bitmaps.PlatformBitmapFactory;
+import com.facebook.imagepipeline.cache.BitmapMemoryCacheTrimStrategy;
 import com.facebook.imagepipeline.cache.CacheKeyFactory;
+import com.facebook.imagepipeline.cache.CountingMemoryCache;
 import com.facebook.imagepipeline.cache.DefaultBitmapMemoryCacheParamsSupplier;
 import com.facebook.imagepipeline.cache.DefaultCacheKeyFactory;
 import com.facebook.imagepipeline.cache.DefaultEncodedMemoryCacheParamsSupplier;
@@ -47,6 +39,10 @@ import com.facebook.imagepipeline.memory.PoolConfig;
 import com.facebook.imagepipeline.memory.PoolFactory;
 import com.facebook.imagepipeline.producers.HttpUrlConnectionNetworkFetcher;
 import com.facebook.imagepipeline.producers.NetworkFetcher;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Master configuration class for the image pipeline library.
@@ -69,9 +65,9 @@ public class ImagePipelineConfig {
   // on demand if needed.
 
   // There are a lot of parameters in this class. Please follow strict alphabetical order.
-  @Nullable private final AnimatedImageFactory mAnimatedImageFactory;
   private final Bitmap.Config mBitmapConfig;
   private final Supplier<MemoryCacheParams> mBitmapMemoryCacheParamsSupplier;
+  private final CountingMemoryCache.CacheTrimStrategy mBitmapMemoryCacheTrimStrategy;
   private final CacheKeyFactory mCacheKeyFactory;
   private final Context mContext;
   private final boolean mDownsampleEnabled;
@@ -84,6 +80,7 @@ public class ImagePipelineConfig {
   private final DiskCacheConfig mMainDiskCacheConfig;
   private final MemoryTrimmableRegistry mMemoryTrimmableRegistry;
   private final NetworkFetcher mNetworkFetcher;
+  private final int mHttpNetworkTimeout;
   @Nullable private final PlatformBitmapFactory mPlatformBitmapFactory;
   private final PoolFactory mPoolFactory;
   private final ProgressiveJpegConfig mProgressiveJpegConfig;
@@ -99,12 +96,15 @@ public class ImagePipelineConfig {
   private ImagePipelineConfig(Builder builder) {
     // We have to build experiments before the rest
     mImagePipelineExperiments = builder.mExperimentsBuilder.build();
-    mAnimatedImageFactory = builder.mAnimatedImageFactory;
     mBitmapMemoryCacheParamsSupplier =
         builder.mBitmapMemoryCacheParamsSupplier == null ?
             new DefaultBitmapMemoryCacheParamsSupplier(
                 (ActivityManager) builder.mContext.getSystemService(Context.ACTIVITY_SERVICE)) :
             builder.mBitmapMemoryCacheParamsSupplier;
+    mBitmapMemoryCacheTrimStrategy =
+        builder.mBitmapMemoryCacheTrimStrategy == null ?
+            new BitmapMemoryCacheTrimStrategy() :
+            builder.mBitmapMemoryCacheTrimStrategy;
     mBitmapConfig =
         builder.mBitmapConfig == null ?
             Bitmap.Config.ARGB_8888 :
@@ -144,10 +144,14 @@ public class ImagePipelineConfig {
         builder.mMemoryTrimmableRegistry == null ?
             NoOpMemoryTrimmableRegistry.getInstance() :
             builder.mMemoryTrimmableRegistry;
+    mHttpNetworkTimeout =
+        builder.mHttpConnectionTimeout < 0
+            ? HttpUrlConnectionNetworkFetcher.HTTP_DEFAULT_TIMEOUT
+            : builder.mHttpConnectionTimeout;
     mNetworkFetcher =
-        builder.mNetworkFetcher == null ?
-            new HttpUrlConnectionNetworkFetcher() :
-            builder.mNetworkFetcher;
+        builder.mNetworkFetcher == null
+            ? new HttpUrlConnectionNetworkFetcher(mHttpNetworkTimeout)
+            : builder.mNetworkFetcher;
     mPlatformBitmapFactory = builder.mPlatformBitmapFactory;
     mPoolFactory =
         builder.mPoolFactory == null ?
@@ -214,17 +218,16 @@ public class ImagePipelineConfig {
     sDefaultImageRequestConfig = new DefaultImageRequestConfig();
   }
 
-  @Nullable
-  public AnimatedImageFactory getAnimatedImageFactory() {
-    return mAnimatedImageFactory;
-  }
-
   public Bitmap.Config getBitmapConfig() {
     return mBitmapConfig;
   }
 
   public Supplier<MemoryCacheParams> getBitmapMemoryCacheParamsSupplier() {
     return mBitmapMemoryCacheParamsSupplier;
+  }
+
+  public CountingMemoryCache.CacheTrimStrategy getBitmapMemoryCacheTrimStrategy() {
+    return mBitmapMemoryCacheTrimStrategy;
   }
 
   public CacheKeyFactory getCacheKeyFactory() {
@@ -339,9 +342,9 @@ public class ImagePipelineConfig {
 
   public static class Builder {
 
-    private AnimatedImageFactory mAnimatedImageFactory;
     private Bitmap.Config mBitmapConfig;
     private Supplier<MemoryCacheParams> mBitmapMemoryCacheParamsSupplier;
+    private CountingMemoryCache.CacheTrimStrategy mBitmapMemoryCacheTrimStrategy;
     private CacheKeyFactory mCacheKeyFactory;
     private final Context mContext;
     private boolean mDownsampleEnabled = false;
@@ -361,17 +364,13 @@ public class ImagePipelineConfig {
     private DiskCacheConfig mSmallImageDiskCacheConfig;
     private FileCacheFactory mFileCacheFactory;
     private ImageDecoderConfig mImageDecoderConfig;
+    private int mHttpConnectionTimeout = -1;
     private final ImagePipelineExperiments.Builder mExperimentsBuilder
         = new ImagePipelineExperiments.Builder(this);
 
     private Builder(Context context) {
       // Doesn't use a setter as always required.
       mContext = Preconditions.checkNotNull(context);
-    }
-
-    public Builder setAnimatedImageFactory(AnimatedImageFactory animatedImageFactory) {
-      mAnimatedImageFactory = animatedImageFactory;
-      return this;
     }
 
     public Builder setBitmapsConfig(Bitmap.Config config) {
@@ -386,8 +385,19 @@ public class ImagePipelineConfig {
       return this;
     }
 
+    public Builder setBitmapMemoryCacheTrimStrategy(
+        CountingMemoryCache.CacheTrimStrategy trimStrategy) {
+      mBitmapMemoryCacheTrimStrategy = trimStrategy;
+      return this;
+    }
+
     public Builder setCacheKeyFactory(CacheKeyFactory cacheKeyFactory) {
       mCacheKeyFactory = cacheKeyFactory;
+      return this;
+    }
+
+    public Builder setHttpConnectionTimeout(int httpConnectionTimeoutMs) {
+      mHttpConnectionTimeout = httpConnectionTimeoutMs;
       return this;
     }
 

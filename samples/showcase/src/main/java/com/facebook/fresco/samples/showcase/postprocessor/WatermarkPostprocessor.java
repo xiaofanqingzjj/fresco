@@ -11,18 +11,14 @@
  */
 package com.facebook.fresco.samples.showcase.postprocessor;
 
-import java.util.Random;
-
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import com.facebook.imagepipeline.request.BasePostprocessor;
+import java.util.Random;
 
-import com.facebook.fresco.samples.showcase.imagepipeline.DurationCallback;
-
-/**
- * Adds a watermark at random positions to the bitmap using {@link Canvas}.
- */
-public class WatermarkPostprocessor extends BasePostprocessorWithDurationCallback {
+/** Adds a watermark at random positions to the bitmap using {@link Canvas}. */
+public class WatermarkPostprocessor extends BasePostprocessor {
 
   private static final int TEXT_COLOR = 0xBBFFFFFF;
   private static final int FONT_SIZE = 80;
@@ -33,18 +29,14 @@ public class WatermarkPostprocessor extends BasePostprocessorWithDurationCallbac
   private final Paint mPaint = new Paint();
 
   public WatermarkPostprocessor(
-      DurationCallback durationCallback,
       int count,
       String watermarkText) {
-    super(durationCallback);
     mCount = count;
     mWatermarkText = watermarkText;
   }
 
   @Override
   public void process(Bitmap bitmap) {
-    final long startNs = System.nanoTime();
-
     final int w = bitmap.getWidth();
     final int h = bitmap.getHeight();
 
@@ -60,7 +52,5 @@ public class WatermarkPostprocessor extends BasePostprocessorWithDurationCallbac
       final int y = mRandom.nextInt(h);
       canvas.drawText(mWatermarkText, x, y, mPaint);
     }
-
-    showDuration(System.nanoTime() - startNs);
   }
 }

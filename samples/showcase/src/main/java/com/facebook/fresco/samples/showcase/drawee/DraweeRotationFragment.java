@@ -21,11 +21,10 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-
-import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.facebook.fresco.samples.showcase.BaseShowcaseFragment;
 import com.facebook.fresco.samples.showcase.R;
+import com.facebook.fresco.samples.showcase.misc.ImageUriProvider;
 import com.facebook.imagepipeline.common.RotationOptions;
 import com.facebook.imagepipeline.request.ImageRequest;
 import com.facebook.imagepipeline.request.ImageRequestBuilder;
@@ -35,10 +34,8 @@ import com.facebook.imagepipeline.request.ImageRequestBuilder;
  */
 public class DraweeRotationFragment extends BaseShowcaseFragment {
 
-  private static final Uri URI =
-      Uri.parse("http://frescolib.org/static/sample-images/animal_a_m.jpg");
-
   private SimpleDraweeView mSimpleDraweeView;
+  private Uri mUri;
 
   @Nullable
   @Override
@@ -49,6 +46,8 @@ public class DraweeRotationFragment extends BaseShowcaseFragment {
 
   @Override
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    final ImageUriProvider imageUriProvider = ImageUriProvider.getInstance(getContext());
+    mUri = imageUriProvider.createSampleUri(ImageUriProvider.ImageSize.M);
 
     mSimpleDraweeView = (SimpleDraweeView) view.findViewById(R.id.drawee_view);
     final Spinner spinner = (Spinner) view.findViewById(R.id.spinner);
@@ -77,11 +76,10 @@ public class DraweeRotationFragment extends BaseShowcaseFragment {
   }
 
   private void setRotationOptions(RotationOptions rotationOptions) {
-    ImageRequest imageRequest = ImageRequestBuilder.newBuilderWithSource(URI)
+    ImageRequest imageRequest = ImageRequestBuilder.newBuilderWithSource(mUri)
         .setRotationOptions(rotationOptions)
         .build();
-    mSimpleDraweeView.setController(
-        Fresco.newDraweeControllerBuilder().setImageRequest(imageRequest).build());
+    mSimpleDraweeView.setImageRequest(imageRequest);
   }
 
   public class SimpleRotationOptionsAdapter extends BaseAdapter {

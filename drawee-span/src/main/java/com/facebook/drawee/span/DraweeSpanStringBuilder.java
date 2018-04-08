@@ -1,10 +1,8 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.drawee.span;
@@ -13,13 +11,12 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
+import android.os.SystemClock;
 import android.text.SpannableStringBuilder;
 import android.view.View;
-
 import com.facebook.common.internal.Preconditions;
 import com.facebook.common.internal.VisibleForTesting;
 import com.facebook.common.lifecycle.AttachDetachListener;
-
 import com.facebook.drawee.controller.AbstractDraweeController;
 import com.facebook.drawee.controller.BaseControllerListener;
 import com.facebook.drawee.interfaces.DraweeController;
@@ -27,7 +24,6 @@ import com.facebook.drawee.interfaces.DraweeHierarchy;
 import com.facebook.drawee.view.DraweeHolder;
 import com.facebook.imagepipeline.image.ImageInfo;
 import com.facebook.widget.text.span.BetterImageSpan;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -253,7 +249,11 @@ public class DraweeSpanStringBuilder extends SpannableStringBuilder
     @Override
     public void scheduleDrawable(Drawable who, Runnable what, long when) {
       if (mBoundView != null) {
-        mBoundView.scheduleDrawable(who, what, when);
+        // 'mBoundView.scheduleDrawable(who, what, when)' wouldn't work because
+        // it cannot determine the 'who' drawable with 'verifyDrawable(who)'.
+        // So we're re-implementing 'scheduleDrawable' manually.
+        final long delay = when - SystemClock.uptimeMillis();
+        mBoundView.postDelayed(what, delay);
       } else if (mBoundDrawable != null) {
         mBoundDrawable.scheduleSelf(what, when);
       }
@@ -262,7 +262,7 @@ public class DraweeSpanStringBuilder extends SpannableStringBuilder
     @Override
     public void unscheduleDrawable(Drawable who, Runnable what) {
       if (mBoundView != null) {
-        unscheduleDrawable(who, what);
+        mBoundView.removeCallbacks(what);
       } else if (mBoundDrawable != null) {
         mBoundDrawable.unscheduleSelf(what);
       }

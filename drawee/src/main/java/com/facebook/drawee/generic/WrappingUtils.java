@@ -1,14 +1,10 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.facebook.drawee.generic;
-
-import javax.annotation.Nullable;
 
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -18,7 +14,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-
 import com.facebook.common.internal.Preconditions;
 import com.facebook.drawee.drawable.DrawableParent;
 import com.facebook.drawee.drawable.ForwardingDrawable;
@@ -28,8 +23,8 @@ import com.facebook.drawee.drawable.RoundedBitmapDrawable;
 import com.facebook.drawee.drawable.RoundedColorDrawable;
 import com.facebook.drawee.drawable.RoundedCornersDrawable;
 import com.facebook.drawee.drawable.ScaleTypeDrawable;
-
-import static com.facebook.drawee.drawable.ScalingUtils.ScaleType;
+import com.facebook.drawee.drawable.ScalingUtils;
+import javax.annotation.Nullable;
 
 /**
  * A class that contains helper methods for wrapping and rounding.
@@ -55,32 +50,31 @@ public class WrappingUtils {
   /**
    * Wraps the given drawable with a new {@link ScaleTypeDrawable}.
    *
-   * <p> If the provided drawable or scale type is null, the given drawable is returned without
-   * being wrapped.
+   * <p>If the provided drawable or scale type is null, the given drawable is returned without being
+   * wrapped.
    *
-   * @return the wrapping scale type drawable, or the original drawable if the wrapping didn't
-   * take place
+   * @return the wrapping scale type drawable, or the original drawable if the wrapping didn't take
+   *     place
    */
   @Nullable
   static Drawable maybeWrapWithScaleType(
-      @Nullable Drawable drawable,
-      @Nullable ScaleType scaleType) {
+      @Nullable Drawable drawable, @Nullable ScalingUtils.ScaleType scaleType) {
     return maybeWrapWithScaleType(drawable, scaleType, null);
   }
 
   /**
    * Wraps the given drawable with a new {@link ScaleTypeDrawable}.
    *
-   * <p> If the provided drawable or scale type is null, the given drawable is returned without
-   * being wrapped.
+   * <p>If the provided drawable or scale type is null, the given drawable is returned without being
+   * wrapped.
    *
-   * @return the wrapping scale type drawable, or the original drawable if the wrapping didn't
-   * take place
+   * @return the wrapping scale type drawable, or the original drawable if the wrapping didn't take
+   *     place
    */
   @Nullable
   static Drawable maybeWrapWithScaleType(
       @Nullable Drawable drawable,
-      @Nullable ScaleType scaleType,
+      @Nullable ScalingUtils.ScaleType scaleType,
       @Nullable PointF focusPoint) {
     if (drawable == null || scaleType == null) {
       return drawable;
@@ -111,10 +105,9 @@ public class WrappingUtils {
     return new MatrixDrawable(drawable, matrix);
   }
 
-  /**
-   * Wraps the parent's child with a ScaleTypeDrawable.
-   */
-  static ScaleTypeDrawable wrapChildWithScaleType(DrawableParent parent, ScaleType scaleType) {
+  /** Wraps the parent's child with a ScaleTypeDrawable. */
+  static ScaleTypeDrawable wrapChildWithScaleType(
+      DrawableParent parent, ScalingUtils.ScaleType scaleType) {
     Drawable child = parent.setDrawable(sEmptyDrawable);
     child = maybeWrapWithScaleType(child, scaleType);
     parent.setDrawable(child);
@@ -296,6 +289,7 @@ public class WrappingUtils {
     rounded.setRadii(roundingParams.getCornersRadii());
     rounded.setBorder(roundingParams.getBorderColor(), roundingParams.getBorderWidth());
     rounded.setPadding(roundingParams.getPadding());
+    rounded.setScaleDownInsideBorders(roundingParams.getScaleDownInsideBorders());
   }
 
   /**
@@ -306,6 +300,7 @@ public class WrappingUtils {
     rounded.setRadius(0);
     rounded.setBorder(Color.TRANSPARENT, 0);
     rounded.setPadding(0);
+    rounded.setScaleDownInsideBorders(false);
   }
 
   /**

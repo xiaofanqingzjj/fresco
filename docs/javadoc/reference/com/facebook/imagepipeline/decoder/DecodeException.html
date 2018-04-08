@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="selected api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -394,6 +394,9 @@ Summary:
   
 
 
+
+  &#124; <a href="#pubmethods">Methods</a>
+  
 
 
 
@@ -581,7 +584,7 @@ Summary:
             
         </td>
         <td class="jd-linkcol" width="100%">
-        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/decoder/DecodeException.html#DecodeException(java.lang.String)">DecodeException</a></span>(String message)
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/decoder/DecodeException.html#DecodeException(java.lang.String, com.facebook.imagepipeline.image.EncodedImage)">DecodeException</a></span>(String message, <a href="../../../../com/facebook/imagepipeline/image/EncodedImage.html">EncodedImage</a> encodedImage)
         
   </td></tr>
 
@@ -597,7 +600,7 @@ Summary:
             
         </td>
         <td class="jd-linkcol" width="100%">
-        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/decoder/DecodeException.html#DecodeException(java.lang.String, java.lang.Throwable)">DecodeException</a></span>(String message, Throwable t)
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/decoder/DecodeException.html#DecodeException(java.lang.String, java.lang.Throwable, com.facebook.imagepipeline.image.EncodedImage)">DecodeException</a></span>(String message, Throwable t, <a href="../../../../com/facebook/imagepipeline/image/EncodedImage.html">EncodedImage</a> encodedImage)
         
   </td></tr>
 
@@ -608,6 +611,31 @@ Summary:
 
 
 
+
+
+<!-- ========== METHOD SUMMARY =========== -->
+<table id="pubmethods" class="jd-sumtable"><tr><th colspan="12">Public Methods</th></tr>
+
+
+
+	 
+    <tr class="alt-color api apilevel-" >
+        <td class="jd-typecol">
+            
+            
+            
+            
+            
+            <a href="../../../../com/facebook/imagepipeline/image/EncodedImage.html">EncodedImage</a>
+        </td>
+        <td class="jd-linkcol" width="100%">
+        <span class="sympad"><a href="../../../../com/facebook/imagepipeline/decoder/DecodeException.html#getEncodedImage()">getEncodedImage</a></span>()
+        
+  </td></tr>
+
+
+
+</table>
 
 
 
@@ -1096,7 +1124,7 @@ From class
 
 
 
-<a id="DecodeException(java.lang.String)"></a>
+<a id="DecodeException(java.lang.String, com.facebook.imagepipeline.image.EncodedImage)"></a>
 
 <div class="jd-details api apilevel-"> 
     <h4 class="jd-details-title">
@@ -1109,7 +1137,7 @@ From class
         
       </span>
       <span class="sympad">DecodeException</span>
-      <span class="normal">(String message)</span>
+      <span class="normal">(String message, <a href="../../../../com/facebook/imagepipeline/image/EncodedImage.html">EncodedImage</a> encodedImage)</span>
     </h4>
       <div class="api-level">
         <div>
@@ -1127,7 +1155,7 @@ From class
 </div>
 
 
-<a id="DecodeException(java.lang.String, java.lang.Throwable)"></a>
+<a id="DecodeException(java.lang.String, java.lang.Throwable, com.facebook.imagepipeline.image.EncodedImage)"></a>
 
 <div class="jd-details api apilevel-"> 
     <h4 class="jd-details-title">
@@ -1140,7 +1168,7 @@ From class
         
       </span>
       <span class="sympad">DecodeException</span>
-      <span class="normal">(String message, Throwable t)</span>
+      <span class="normal">(String message, Throwable t, <a href="../../../../com/facebook/imagepipeline/image/EncodedImage.html">EncodedImage</a> encodedImage)</span>
     </h4>
       <div class="api-level">
         <div>
@@ -1168,6 +1196,42 @@ From class
 
 <!-- ========= METHOD DETAIL ======== -->
 <!-- Public methdos -->
+
+<h2>Public Methods</h2>
+
+
+
+<a id="getEncodedImage()"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+         
+         
+         
+         
+        <a href="../../../../com/facebook/imagepipeline/image/EncodedImage.html">EncodedImage</a>
+      </span>
+      <span class="sympad">getEncodedImage</span>
+      <span class="normal">()</span>
+    </h4>
+      <div class="api-level">
+        <div>
+
+</div>
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p></p></div>
+
+    </div>
+</div>
+
+
 
 
 

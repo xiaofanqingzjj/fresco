@@ -175,8 +175,6 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/references/package-summary.html">com.facebook.common.references</a></li>
     <li class="api apilevel-">
-  <a href="../../../../com/facebook/common/soloader/package-summary.html">com.facebook.common.soloader</a></li>
-    <li class="api apilevel-">
   <a href="../../../../com/facebook/common/statfs/package-summary.html">com.facebook.common.statfs</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/common/streams/package-summary.html">com.facebook.common.streams</a></li>
@@ -219,6 +217,8 @@
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/cache/package-summary.html">com.facebook.fresco.animation.bitmap.cache</a></li>
     <li class="api apilevel-">
+  <a href="../../../../com/facebook/fresco/animation/bitmap/preparation/package-summary.html">com.facebook.fresco.animation.bitmap.preparation</a></li>
+    <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/bitmap/wrapper/package-summary.html">com.facebook.fresco.animation.bitmap.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/drawable/package-summary.html">com.facebook.fresco.animation.drawable</a></li>
@@ -228,8 +228,6 @@
   <a href="../../../../com/facebook/fresco/animation/factory/package-summary.html">com.facebook.fresco.animation.factory</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/fresco/animation/frame/package-summary.html">com.facebook.fresco.animation.frame</a></li>
-    <li class="api apilevel-">
-  <a href="../../../../com/facebook/fresco/animation/wrapper/package-summary.html">com.facebook.fresco.animation.wrapper</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imageformat/package-summary.html">com.facebook.imageformat</a></li>
     <li class="api apilevel-">
@@ -256,6 +254,8 @@
   <a href="../../../../com/facebook/imagepipeline/datasource/package-summary.html">com.facebook.imagepipeline.datasource</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/decoder/package-summary.html">com.facebook.imagepipeline.decoder</a></li>
+    <li class="api apilevel-">
+  <a href="../../../../com/facebook/imagepipeline/drawable/package-summary.html">com.facebook.imagepipeline.drawable</a></li>
     <li class="api apilevel-">
   <a href="../../../../com/facebook/imagepipeline/image/package-summary.html">com.facebook.imagepipeline.image</a></li>
     <li class="api apilevel-">
@@ -578,12 +578,23 @@ Summary:
           static
           final
           <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a></td>
-          <td class="jd-linkcol"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FIT_CENTER">FIT_CENTER</a></td>
+          <td class="jd-linkcol"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FIT_BOTTOM_START">FIT_BOTTOM_START</a></td>
           <td class="jd-descrcol" width="100%">Scales the child so that it fits entirely inside the parent.</td>
       </tr>
       
     
       <tr class="alt-color api apilevel-" >
+          <td class="jd-typecol">
+          public
+          static
+          final
+          <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a></td>
+          <td class="jd-linkcol"><a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html#FIT_CENTER">FIT_CENTER</a></td>
+          <td class="jd-descrcol" width="100%">Scales the child so that it fits entirely inside the parent.</td>
+      </tr>
+      
+    
+      <tr class=" api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -594,7 +605,7 @@ Summary:
       </tr>
       
     
-      <tr class=" api apilevel-" >
+      <tr class="alt-color api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -605,7 +616,7 @@ Summary:
       </tr>
       
     
-      <tr class="alt-color api apilevel-" >
+      <tr class=" api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -616,7 +627,7 @@ Summary:
       </tr>
       
     
-      <tr class=" api apilevel-" >
+      <tr class="alt-color api apilevel-" >
           <td class="jd-typecol">
           public
           static
@@ -724,9 +735,7 @@ Summary:
       </div>
     <div class="jd-details-descr">
       
-  <div class="jd-tagdata jd-tagdescr"><p>Performs no scaling.
- Child is centered within parent's bounds.
-</p></div>
+  <div class="jd-tagdata jd-tagdescr"><p>Performs no scaling. Child is centered within parent's bounds. </p></div>
 
     
     </div>
@@ -757,8 +766,8 @@ Summary:
     <div class="jd-details-descr">
       
   <div class="jd-tagdata jd-tagdescr"><p>Scales the child so that both dimensions will be greater than or equal to the corresponding
- dimension of the parent. At least one dimension (width or height) will fit exactly.
- Child is centered within parent's bounds.
+ dimension of the parent. At least one dimension (width or height) will fit exactly. Child is
+ centered within parent's bounds.
 </p></div>
 
     
@@ -790,8 +799,41 @@ Summary:
     <div class="jd-details-descr">
       
   <div class="jd-tagdata jd-tagdescr"><p>Scales the child so that it fits entirely inside the parent. Unlike FIT_CENTER, if the child
- is smaller, no up-scaling will be performed. Aspect ratio is preserved.
- Child is centered within parent's bounds.
+ is smaller, no up-scaling will be performed. Aspect ratio is preserved. Child is centered
+ within parent's bounds.
+</p></div>
+
+    
+    </div>
+</div>
+
+
+
+<a id="FIT_BOTTOM_START"></a>
+
+<div class="jd-details api apilevel-"> 
+    <h4 class="jd-details-title">
+      <span class="normal">
+        public 
+        static 
+        final 
+        <a href="../../../../com/facebook/drawee/drawable/ScalingUtils.ScaleType.html">ScalingUtils.ScaleType</a>
+      </span>
+        FIT_BOTTOM_START
+    </h4>
+      <div class="api-level">
+        
+
+
+        
+  
+
+      </div>
+    <div class="jd-details-descr">
+      
+  <div class="jd-tagdata jd-tagdescr"><p>Scales the child so that it fits entirely inside the parent. At least one dimension (width or
+ height) will fit exactly. Aspect ratio is preserved. Child is aligned to the bottom-left
+ corner of the parent.
 </p></div>
 
     
@@ -823,8 +865,8 @@ Summary:
     <div class="jd-details-descr">
       
   <div class="jd-tagdata jd-tagdescr"><p>Scales the child so that it fits entirely inside the parent. At least one dimension (width or
- height) will fit exactly. Aspect ratio is preserved.
- Child is centered within the parent's bounds.
+ height) will fit exactly. Aspect ratio is preserved. Child is centered within the parent's
+ bounds.
 </p></div>
 
     
@@ -856,8 +898,8 @@ Summary:
     <div class="jd-details-descr">
       
   <div class="jd-tagdata jd-tagdescr"><p>Scales the child so that it fits entirely inside the parent. At least one dimension (width or
- height) will fit exactly. Aspect ratio is preserved.
- Child is aligned to the bottom-right corner of the parent.
+ height) will fit exactly. Aspect ratio is preserved. Child is aligned to the bottom-right
+ corner of the parent.
 </p></div>
 
     
@@ -889,8 +931,8 @@ Summary:
     <div class="jd-details-descr">
       
   <div class="jd-tagdata jd-tagdescr"><p>Scales the child so that it fits entirely inside the parent. At least one dimension (width or
- height) will fit exactly. Aspect ratio is preserved.
- Child is aligned to the top-left corner of the parent.
+ height) will fit exactly. Aspect ratio is preserved. Child is aligned to the top-left corner
+ of the parent.
 </p></div>
 
     
@@ -921,8 +963,8 @@ Summary:
       </div>
     <div class="jd-details-descr">
       
-  <div class="jd-tagdata jd-tagdescr"><p>Scales width and height independently, so that the child matches the parent exactly.
- This may change the aspect ratio of the child.
+  <div class="jd-tagdata jd-tagdescr"><p>Scales width and height independently, so that the child matches the parent exactly. This may
+ change the aspect ratio of the child.
 </p></div>
 
     
@@ -954,11 +996,11 @@ Summary:
     <div class="jd-details-descr">
       
   <div class="jd-tagdata jd-tagdescr"><p>Scales the child so that both dimensions will be greater than or equal to the corresponding
- dimension of the parent. At least one dimension (width or height) will fit exactly.
- The child's focus point will be centered within the parent's bounds as much as possible
- without leaving empty space.
- It is guaranteed that the focus point will be visible and centered as much as possible.
- If the focus point is set to (0.5f, 0.5f), result will be equivalent to CENTER_CROP.
+ dimension of the parent. At least one dimension (width or height) will fit exactly. The
+ child's focus point will be centered within the parent's bounds as much as possible without
+ leaving empty space. It is guaranteed that the focus point will be visible and centered as
+ much as possible. If the focus point is set to (0.5f, 0.5f), result will be equivalent to
+ CENTER_CROP.
 </p></div>
 
     

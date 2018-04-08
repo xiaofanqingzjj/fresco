@@ -11,23 +11,20 @@
  */
 package com.facebook.fresco.samples.showcase.imageformat.svg;
 
-import javax.annotation.Nullable;
-
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PictureDrawable;
-
-import com.facebook.drawee.backends.pipeline.DrawableFactory;
+import com.caverock.androidsvg.SVG;
+import com.caverock.androidsvg.SVGParseException;
 import com.facebook.imageformat.ImageFormat;
 import com.facebook.imageformat.ImageFormatCheckerUtils;
 import com.facebook.imagepipeline.common.ImageDecodeOptions;
 import com.facebook.imagepipeline.decoder.ImageDecoder;
+import com.facebook.imagepipeline.drawable.DrawableFactory;
 import com.facebook.imagepipeline.image.CloseableImage;
 import com.facebook.imagepipeline.image.EncodedImage;
 import com.facebook.imagepipeline.image.QualityInfo;
-
-import com.caverock.androidsvg.SVG;
-import com.caverock.androidsvg.SVGParseException;
+import javax.annotation.Nullable;
 
 /**
  * SVG example that defines all classes required to decode and render SVG images.
@@ -38,6 +35,8 @@ public class SvgDecoderExample {
 
   // We do not include the closing ">" since there can be additional information
   private static final String HEADER_TAG = "<svg";
+  private static final byte[][] POSSIBLE_HEADER_TAGS =
+      { ImageFormatCheckerUtils.asciiBytes("<?xml") };
 
   public static class SvgFormatChecker implements ImageFormat.FormatChecker {
 
@@ -56,6 +55,13 @@ public class SvgDecoderExample {
       }
       if (ImageFormatCheckerUtils.startsWithPattern(headerBytes, HEADER)) {
         return SVG_FORMAT;
+      }
+      for (byte[] possibleHeaderTag : POSSIBLE_HEADER_TAGS) {
+        if (ImageFormatCheckerUtils.startsWithPattern(headerBytes, possibleHeaderTag) &&
+            ImageFormatCheckerUtils
+                .indexOfPattern(headerBytes, headerBytes.length, HEADER, HEADER.length) > -1) {
+          return SVG_FORMAT;
+        }
       }
       return null;
     }

@@ -1,16 +1,11 @@
 /*
  * Copyright (c) 2015-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 package com.facebook.widget.text.span;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -19,6 +14,8 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.text.style.DynamicDrawableSpan;
 import android.text.style.ReplacementSpan;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * A better implementation of image spans that also supports centering images against the text.
@@ -109,7 +106,7 @@ public class BetterImageSpan extends ReplacementSpan {
     }
 
     if (offsetBelow > fontMetrics.bottom) {
-      fontMetrics.descent = offsetBelow;
+      fontMetrics.bottom = offsetBelow;
     }
 
     return mWidth;
